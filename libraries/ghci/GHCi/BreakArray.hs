@@ -19,17 +19,14 @@
 module GHCi.BreakArray
     (
       BreakArray
-#ifdef GHCI
-          (BA) -- constructor is exported only for ByteCodeGen
+      (BA) -- constructor is exported only for ByteCodeGen
     , newBreakArray
     , getBreak
     , setBreakOn
     , setBreakOff
     , showBreakArray
-#endif
     ) where
 
-#ifdef GHCI
 import Control.Monad
 import Data.Word
 import GHC.Word
@@ -76,16 +73,17 @@ safeIndex :: BreakArray -> Int -> Bool
 safeIndex array index = index < size array && index >= 0
 
 size :: BreakArray -> Int
-size (BA array) = size
-  where
-    -- We want to keep this operation pure. The mutable byte array
-    -- is never resized so this is safe.
-    size = unsafeDupablePerformIO $ sizeofMutableByteArray array
+size = undefined
+-- size (BA array) = size
+--   where
+--     -- We want to keep this operation pure. The mutable byte array
+--     -- is never resized so this is safe.
+--     size = unsafeDupablePerformIO $ sizeofMutableByteArray array
 
-    sizeofMutableByteArray :: MutableByteArray# RealWorld -> IO Int
-    sizeofMutableByteArray arr =
-        IO $ \s -> case getSizeofMutableByteArray# arr s of
-                       (# s', n# #) -> (# s', I# n# #)
+--     sizeofMutableByteArray :: MutableByteArray# RealWorld -> IO Int
+--     sizeofMutableByteArray arr =
+--         IO $ \s -> case getSizeofMutableByteArray# arr s of
+--                        (# s', n# #) -> (# s', I# n# #)
 
 allocBA :: Int -> IO BreakArray
 allocBA (I# sz) = IO $ \s1 ->
@@ -115,6 +113,4 @@ readBA# array i = IO $ \s ->
 
 readBreakArray :: BreakArray -> Int -> IO Word8
 readBreakArray (BA array) (I# i) = readBA# array i
-#else
-data BreakArray
-#endif
+-- data BreakArray

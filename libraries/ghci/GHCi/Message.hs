@@ -25,7 +25,7 @@ module GHCi.Message
 
 import GHCi.RemoteTypes
 import GHCi.InfoTable (StgInfoTable)
-import GHCi.FFI
+-- import GHCi.FFI
 import GHCi.TH.Binary ()
 import GHCi.BreakArray
 
@@ -90,10 +90,10 @@ data Message a where
   MallocStrings :: [ByteString] -> Message [RemotePtr ()]
 
   -- | Calls 'GHCi.FFI.prepareForeignCall'
-  PrepFFI :: FFIConv -> [FFIType] -> FFIType -> Message (RemotePtr C_ffi_cif)
+  -- PrepFFI :: FFIConv -> [FFIType] -> FFIType -> Message (RemotePtr C_ffi_cif)
 
   -- | Free data previously created by 'PrepFFI'
-  FreeFFI :: RemotePtr C_ffi_cif -> Message ()
+  -- FreeFFI :: RemotePtr C_ffi_cif -> Message ()
 
   -- | Create an info table for a constructor
   MkConInfoTable
@@ -138,15 +138,15 @@ data Message a where
    -> Message (EvalResult ())
 
   -- | Create a set of CostCentres with the same module name
-  MkCostCentres
-   :: String     -- module, RemotePtr so it can be shared
-   -> [(String,String)] -- (name, SrcSpan)
-   -> Message [RemotePtr CostCentre]
+  -- MkCostCentres
+  --  :: String     -- module, RemotePtr so it can be shared
+  --  -> [(String,String)] -- (name, SrcSpan)
+  --  -> Message [RemotePtr CostCentre]
 
   -- | Show a 'CostCentreStack' as a @[String]@
-  CostCentreStackInfo
-   :: RemotePtr CostCentreStack
-   -> Message [String]
+  -- CostCentreStackInfo
+  --  :: RemotePtr CostCentreStack
+  --  -> Message [String]
 
   -- | Create a new array of breakpoint flags
   NewBreakArray
@@ -329,7 +329,8 @@ data EvalStatus_ a b
        Int {- break index -}
        Int {- uniq of ModuleName -}
        (RemoteRef (ResumeContext b))
-       (RemotePtr CostCentreStack) -- Cost centre stack
+       (RemotePtr ())
+       -- (RemotePtr CostCentreStack) -- Cost centre stack
   deriving (Generic, Show)
 
 instance Binary a => Binary (EvalStatus_ a b)
@@ -429,8 +430,8 @@ getMessage = do
       13 -> Msg <$> FreeHValueRefs <$> get
       14 -> Msg <$> MallocData <$> get
       15 -> Msg <$> MallocStrings <$> get
-      16 -> Msg <$> (PrepFFI <$> get <*> get <*> get)
-      17 -> Msg <$> FreeFFI <$> get
+      -- 16 -> Msg <$> (PrepFFI <$> get <*> get <*> get)
+      -- 17 -> Msg <$> FreeFFI <$> get
       18 -> Msg <$> (MkConInfoTable <$> get <*> get <*> get <*> get <*> get)
       19 -> Msg <$> (EvalStmt <$> get <*> get)
       20 -> Msg <$> (ResumeStmt <$> get <*> get)
@@ -438,8 +439,8 @@ getMessage = do
       22 -> Msg <$> (EvalString <$> get)
       23 -> Msg <$> (EvalStringToString <$> get <*> get)
       24 -> Msg <$> (EvalIO <$> get)
-      25 -> Msg <$> (MkCostCentres <$> get <*> get)
-      26 -> Msg <$> (CostCentreStackInfo <$> get)
+      -- 25 -> Msg <$> (MkCostCentres <$> get <*> get)
+      -- 26 -> Msg <$> (CostCentreStackInfo <$> get)
       27 -> Msg <$> (NewBreakArray <$> get)
       28 -> Msg <$> (EnableBreakpoint <$> get <*> get <*> get)
       29 -> Msg <$> (BreakpointStatus <$> get <*> get)
@@ -466,8 +467,8 @@ putMessage m = case m of
   FreeHValueRefs val          -> putWord8 13 >> put val
   MallocData bs               -> putWord8 14 >> put bs
   MallocStrings bss           -> putWord8 15 >> put bss
-  PrepFFI conv args res       -> putWord8 16 >> put conv >> put args >> put res
-  FreeFFI p                   -> putWord8 17 >> put p
+  -- PrepFFI conv args res       -> putWord8 16 >> put conv >> put args >> put res
+  -- FreeFFI p                   -> putWord8 17 >> put p
   MkConInfoTable p n t pt d   -> putWord8 18 >> put p >> put n >> put t >> put pt >> put d
   EvalStmt opts val           -> putWord8 19 >> put opts >> put val
   ResumeStmt opts val         -> putWord8 20 >> put opts >> put val
@@ -475,8 +476,8 @@ putMessage m = case m of
   EvalString val              -> putWord8 22 >> put val
   EvalStringToString str val  -> putWord8 23 >> put str >> put val
   EvalIO val                  -> putWord8 24 >> put val
-  MkCostCentres mod ccs       -> putWord8 25 >> put mod >> put ccs
-  CostCentreStackInfo ptr     -> putWord8 26 >> put ptr
+  -- MkCostCentres mod ccs       -> putWord8 25 >> put mod >> put ccs
+  -- CostCentreStackInfo ptr     -> putWord8 26 >> put ptr
   NewBreakArray sz            -> putWord8 27 >> put sz
   EnableBreakpoint arr ix b   -> putWord8 28 >> put arr >> put ix >> put b
   BreakpointStatus arr ix     -> putWord8 29 >> put arr >> put ix
