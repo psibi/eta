@@ -89,7 +89,7 @@ module ETA.Main.GHC (
         -- * Interactive evaluation
         getBindings, getInsts, getPrintUnqual,
         findModule, lookupModule,
-#ifdef GHCI
+-- #ifdef GHCI
         isModuleTrusted,
         moduleTrustReqs,
         setContext, getContext,
@@ -122,13 +122,13 @@ module ETA.Main.GHC (
         ModBreaks(..), BreakIndex,
         BreakInfo(breakInfo_number, breakInfo_module),
         BreakArray, setBreakOn, setBreakOff, getBreak,
-#endif
+-- #endif
         lookupName,
 
-#ifdef GHCI
+-- #ifdef GHCI
         -- ** EXPERIMENTAL
         setGHCiMonad,
-#endif
+-- #endif
 
         -- * Abstract syntax elements
 
@@ -260,12 +260,12 @@ module ETA.Main.GHC (
   * what StaticFlags should we expose, if any?
 -}
 
-#ifdef GHCI
+-- #ifdef GHCI
 import ETA.Interactive.ByteCodeInstr
 import ETA.Main.BreakArray
-import InteractiveEval
-import TcRnDriver       ( runTcInteractive )
-#endif
+import ETA.Main.InteractiveEval
+import ETA.TypeCheck.TcRnDriver       ( runTcInteractive )
+-- #endif
 
 import ETA.Main.PprTyThing       ( pprFamInst )
 import ETA.Main.HscMain
@@ -822,9 +822,9 @@ typecheckModule pmod = do
            minf_instances = md_insts details,
            minf_iface     = Nothing,
            minf_safe      = safe
-#ifdef GHCI
+-- #ifdef GHCI
           ,minf_modBreaks = emptyModBreaks
-#endif
+-- #endif
          }}
 
 -- | Desugar a typechecked module.
@@ -1013,9 +1013,9 @@ data ModuleInfo = ModuleInfo {
         minf_instances :: [ClsInst],
         minf_iface     :: Maybe ModIface,
         minf_safe      :: SafeHaskellMode
-#ifdef GHCI
+-- #ifdef GHCI
        ,minf_modBreaks :: ModBreaks
-#endif
+-- #endif
   }
         -- We don't want HomeModInfo here, because a ModuleInfo applies
         -- to package modules too.
@@ -1038,7 +1038,7 @@ getModuleInfo mdl = withSession $ \hsc_env -> do
    -- exist... hence the isHomeModule test here.  (ToDo: reinstate)
 
 getPackageModuleInfo :: HscEnv -> Module -> IO (Maybe ModuleInfo)
-#ifdef GHCI
+-- #ifdef GHCI
 getPackageModuleInfo hsc_env mdl 
   = do  eps <- hscEPS hsc_env
         iface <- hscGetModuleInterface hsc_env mdl
@@ -1058,11 +1058,11 @@ getPackageModuleInfo hsc_env mdl
                         minf_safe      = getSafeMode $ mi_trust iface,
                         minf_modBreaks = emptyModBreaks  
                 }))
-#else
--- bogusly different for non-GHCI (ToDo)
-getPackageModuleInfo _hsc_env _mdl = do
-  return Nothing
-#endif
+-- #else
+-- -- bogusly different for non-GHCI (ToDo)
+-- getPackageModuleInfo _hsc_env _mdl = do
+--   return Nothing
+-- #endif
 
 getHomeModuleInfo :: HscEnv -> Module -> IO (Maybe ModuleInfo)
 getHomeModuleInfo hsc_env mdl = 
@@ -1078,9 +1078,9 @@ getHomeModuleInfo hsc_env mdl =
                         minf_instances = md_insts details,
                         minf_iface     = Just iface,
                         minf_safe      = getSafeMode $ mi_trust iface
-#ifdef GHCI
+-- #ifdef GHCI
                        ,minf_modBreaks = getModBreaks hmi
-#endif
+-- #endif
                         }))
 
 -- | The list of top-level entities defined in a module
@@ -1126,10 +1126,10 @@ modInfoIface = minf_iface
 modInfoSafe :: ModuleInfo -> SafeHaskellMode
 modInfoSafe = minf_safe
 
-#ifdef GHCI
+-- #ifdef GHCI
 modInfoModBreaks :: ModuleInfo -> ModBreaks
 modInfoModBreaks = minf_modBreaks  
-#endif
+-- #endif
 
 isDictonaryId :: Id -> Bool
 isDictonaryId id
@@ -1148,11 +1148,11 @@ findGlobalAnns deserialize target = withSession $ \hsc_env -> do
     ann_env <- liftIO $ prepareAnnotations hsc_env Nothing
     return (findAnns deserialize ann_env target)
 
-#ifdef GHCI
+-- #ifdef GHCI
 -- | get the GlobalRdrEnv for a session
 getGRE :: GhcMonad m => m GlobalRdrEnv
 getGRE = withSession $ \hsc_env-> return $ ic_rn_gbl_env (hsc_IC hsc_env)
-#endif
+-- #endif
 
 -- -----------------------------------------------------------------------------
 
@@ -1351,7 +1351,7 @@ lookupLoadedHomeModule mod_name = withSession $ \hsc_env ->
     Just mod_info      -> return (Just (mi_module (hm_iface mod_info)))
     _not_a_home_module -> return Nothing
 
-#ifdef GHCI
+-- #ifdef GHCI
 -- | Check that a module is safe to import (according to Safe Haskell).
 --
 -- We return True to indicate the import is safe and False otherwise
@@ -1392,7 +1392,7 @@ obtainTermFromId :: GhcMonad m => Int -> Bool -> Id -> m Term
 obtainTermFromId bound force id = withSession $ \hsc_env ->
     liftIO $ InteractiveEval.obtainTermFromId hsc_env bound force id
 
-#endif
+-- #endif
 
 -- | Returns the 'TyThing' for a 'Name'.  The 'Name' may refer to any
 -- entity known to GHC, including 'Name's defined using 'runStmt'.

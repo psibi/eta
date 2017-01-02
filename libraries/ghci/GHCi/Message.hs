@@ -228,7 +228,7 @@ data THMessage a where
   ReifyAnnotations :: TH.AnnLookup -> TypeRep
     -> THMessage (THResult [ByteString])
   ReifyModule :: TH.Module -> THMessage (THResult TH.ModuleInfo)
-  ReifyConStrictness :: TH.Name -> THMessage (THResult [TH.DecidedStrictness])
+-- ReifyConStrictness :: TH.Name -> THMessage (THResult [TH.DecidedStrictness])
 
   AddDependentFile :: FilePath -> THMessage (THResult ())
   AddModFinalizer :: RemoteRef (TH.Q ()) -> THMessage (THResult ())
@@ -260,7 +260,7 @@ getTHMessage = do
     6  -> THMsg <$> ReifyRoles <$> get
     7  -> THMsg <$> (ReifyAnnotations <$> get <*> get)
     8  -> THMsg <$> ReifyModule <$> get
-    9  -> THMsg <$> ReifyConStrictness <$> get
+    -- 9  -> THMsg <$> ReifyConStrictness <$> get
     10 -> THMsg <$> AddDependentFile <$> get
     11 -> THMsg <$> AddTopDecls <$> get
     12 -> THMsg <$> (IsExtEnabled <$> get)
@@ -281,7 +281,7 @@ putTHMessage m = case m of
   ReifyRoles a                -> putWord8 6  >> put a
   ReifyAnnotations a b        -> putWord8 7  >> put a >> put b
   ReifyModule a               -> putWord8 8  >> put a
-  ReifyConStrictness a        -> putWord8 9  >> put a
+  -- ReifyConStrictness a        -> putWord8 9  >> put a
   AddDependentFile a          -> putWord8 10 >> put a
   AddTopDecls a               -> putWord8 11 >> put a
   IsExtEnabled a              -> putWord8 12 >> put a
@@ -374,7 +374,7 @@ fromSerializableException (EOtherException str) = toException (ErrorCall str)
 -- as the minimum
 instance Binary ExitCode where
   put ExitSuccess      = putWord8 0
-  put (ExitFailure ec) = putWord8 1 `mappend` put ec
+  put (ExitFailure ec) = putWord8 1 -- todo  `mappend` put ec
   get = do
     w <- getWord8
     case w of

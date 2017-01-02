@@ -2,7 +2,7 @@
 
 -- | Dynamically lookup up values from modules and loading them.
 module ETA.Main.DynamicLoading (
-#ifdef GHCI
+-- #ifdef GHCI
         -- * Loading plugins
         loadPlugins,
 
@@ -18,10 +18,10 @@ module ETA.Main.DynamicLoading (
         getValueSafely,
         getHValueSafely,
         lessUnsafeCoerce
-#endif
+-- #endif
     ) where
 
-#ifdef GHCI
+-- #ifdef GHCI
 import ETA.Interactive.Linker           ( linkModule, getHValue )
 import ETA.BasicTypes.SrcLoc           ( noSrcSpan )
 import ETA.Main.Finder           ( findImportedModule, cannotFindModule )
@@ -237,4 +237,4 @@ throwCmdLineErrorS dflags = throwCmdLineError . showSDoc dflags
 
 throwCmdLineError :: String -> IO a
 throwCmdLineError = throwGhcExceptionIO . CmdLineError
-#endif
+-- #endif

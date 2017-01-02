@@ -23,8 +23,8 @@ module ETA.Rename.RnTypes (
         extractWildcards, filterInScope
   ) where
 
--- import {-# SOURCE #-} ETA.TypeCheck.TcSplice( runQuasiQuoteType )
-import ETA.TypeCheck.TcSplice( runQuasiQuoteType )
+import {-# SOURCE #-} ETA.TypeCheck.TcSplice( runQuasiQuoteType )
+-- import ETA.TypeCheck.TcSplice( runQuasiQuoteType )
 -- import {-# SOURCE #-} ETA.Rename.RnSplice( rnSpliceType )
 import ETA.Rename.RnSplice( rnSpliceType )
 

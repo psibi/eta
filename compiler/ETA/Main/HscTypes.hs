@@ -130,10 +130,10 @@ module ETA.Main.HscTypes (
 
 #include "HsVersions.h"
 
-#ifdef GHCI
+-- #ifdef GHCI
 import ETA.Interactive.ByteCodeAsm      ( CompiledByteCode )
 import ETA.Main.InteractiveEvalTypes ( Resume )
-#endif
+-- #endif
 
 import ETA.HsSyn.HsSyn
 import ETA.BasicTypes.RdrName
@@ -1358,10 +1358,10 @@ data InteractiveContext
          ic_default :: Maybe [Type],
              -- ^ The current default types, set by a 'default' declaration
 
-#ifdef GHCI
+-- #ifdef GHCI
           ic_resume :: [Resume],
              -- ^ The stack of breakpoint contexts
-#endif
+-- #endif
 
          ic_monad      :: Name,
              -- ^ The monad that GHCi is executing in
@@ -1399,9 +1399,9 @@ emptyInteractiveContext dflags
        ic_monad      = ioTyConName,  -- IO monad by default
        ic_int_print  = printName,    -- System.IO.print by default
        ic_default    = Nothing,
-#ifdef GHCI
+-- #ifdef GHCI
        ic_resume     = [],
-#endif
+-- #endif
        ic_cwd        = Nothing }
 
 icInteractiveModule :: InteractiveContext -> Module
@@ -2776,21 +2776,21 @@ data Unlinked
    | DotDLL FilePath    -- ^ Dynamically linked library file (.so, .dll, .dylib)
    | BCOs CompiledByteCode ModBreaks    -- ^ A byte-code object, lives only in memory
 
-#ifndef GHCI
-data CompiledByteCode = CompiledByteCodeUndefined
-_unused :: CompiledByteCode
-_unused = CompiledByteCodeUndefined
-#endif
+-- #ifndef GHCI
+-- data CompiledByteCode = CompiledByteCodeUndefined
+-- _unused :: CompiledByteCode
+-- _unused = CompiledByteCodeUndefined
+-- #endif
 
 instance Outputable Unlinked where
    ppr (DotO path)   = text "DotO" <+> text path
    ppr (DotA path)   = text "DotA" <+> text path
    ppr (DotDLL path) = text "DotDLL" <+> text path
-#ifdef GHCI
+-- #ifdef GHCI
    ppr (BCOs bcos _) = text "BCOs" <+> ppr bcos
-#else
+-- #else
    ppr (BCOs _ _)    = text "No byte code"
-#endif
+-- #endif
 
 -- | Is this an actual file on disk we can link in somehow?
 isObject :: Unlinked -> Bool

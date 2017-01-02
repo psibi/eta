@@ -9,12 +9,12 @@ import ETA.TypeCheck.TcRnTypes( TcM, TcId )
 import ETA.TypeCheck.TcType   ( TcRhoType )
 import ETA.Main.Annotations ( Annotation, CoreAnnTarget )
 
-#ifdef GHCI
+-- #ifdef GHCI
 import ETA.BasicTypes.Id         ( Id )
 import qualified Language.Haskell.TH as TH
 import ETA.Utils.Outputable (SDoc)
 import ETA.BasicTypes.SrcLoc     (SrcSpan)
-#endif
+-- #endif
 
 tcSpliceExpr :: HsSplice Name
              -> TcRhoType
@@ -34,7 +34,7 @@ runQuasiQuoteType :: HsQuasiQuote RdrName -> TcM (LHsType RdrName)
 runQuasiQuotePat  :: HsQuasiQuote RdrName -> TcM (LPat RdrName)
 runAnnotation     :: CoreAnnTarget -> LHsExpr Name -> TcM Annotation
 
-#ifdef GHCI
+-- #ifdef GHCI
 tcTopSpliceExpr :: Bool -> TcM (LHsExpr Id) -> TcM (LHsExpr Id)
 
 runMetaE :: LHsExpr Id -> TcM (LHsExpr RdrName)
@@ -54,4 +54,4 @@ data SpliceInfo
     , spliceGenerated     :: SDoc
     }
 traceSplice :: SpliceInfo -> TcM ()
-#endif
+-- #endif

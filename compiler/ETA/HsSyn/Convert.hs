@@ -19,6 +19,7 @@ import ETA.BasicTypes.RdrName
 import qualified ETA.BasicTypes.Name as Name
 import ETA.BasicTypes.Module
 import ETA.Parser.RdrHsSyn
+import qualified ETA.Parser.RdrHsSyn as RdrHsSyn
 import qualified ETA.BasicTypes.OccName as OccName
 import ETA.BasicTypes.OccName
 import ETA.BasicTypes.SrcLoc
@@ -35,6 +36,7 @@ import ETA.BasicTypes.Lexeme
 import ETA.Utils.Util
 import ETA.Utils.FastString
 import ETA.Utils.Outputable
+import qualified ETA.Utils.Outputable as Outputable
 
 import qualified Data.ByteString as BS
 import Control.Monad( unless, liftM, ap )

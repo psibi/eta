@@ -14,7 +14,7 @@ import ETA.TypeCheck.TcSimplify
 import ETA.TypeCheck.TcMType
 import ETA.TypeCheck.TcType
 import ETA.TypeCheck.TcHsType
-import ETA.TypeCheck.TcExpr
+import {-# SOURCE #-}ETA.TypeCheck.TcExpr (tcInferRho, tcMonoExpr)
 import ETA.TypeCheck.TcEnv
 import ETA.TypeCheck.TcEvidence( TcEvBinds(..) )
 import ETA.Types.Type

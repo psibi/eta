@@ -8,9 +8,10 @@
 module GHCi.InfoTable
   ( peekItbl, StgInfoTable(..)
   , conInfoPtr
-#ifdef GHCI
+-- #ifdef GHCI
   , mkConInfoTable
-#endif
+  , rtsIsProfiled
+-- #endif
   ) where
 
 #if !defined(TABLES_NEXT_TO_CODE)
@@ -81,7 +82,7 @@ ghciTablesNextToCode = True
 ghciTablesNextToCode = False
 #endif
 
-#ifdef GHCI /* To end */
+-- #ifdef GHCI /* To end */
 mkConInfoTable
    :: Int     -- ptr words
    -> Int     -- non-ptr words
@@ -454,4 +455,4 @@ rtsIsProfiled = unsafeDupablePerformIO rtsIsProfiledIO /= 0
 
 cONSTR :: Int   -- Defined in ClosureTypes.h
 cONSTR = (#const CONSTR)
-#endif /* GHCI */
+-- #endif /* GHCI */

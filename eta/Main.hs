@@ -13,7 +13,7 @@ import ETA.Main.DriverPipeline
 import ETA.Main.PipelineMonad
 import ETA.Types.TyCon (isDataTyCon)
 import ETA.Main.DriverMkDepend   ( doMkDependHS )
--- import InteractiveUI    ( interactiveUI, ghciWelcomeMsg, defaultGhciSettings )
+import InteractiveUI    ( interactiveUI, ghciWelcomeMsg, defaultGhciSettings )
 import ETA.StgSyn.StgSyn (pprStgBindings)
 import ETA.Main.SysTools
 import ETA.Main.Constants
@@ -471,11 +471,11 @@ isDoMakeMode :: Mode -> Bool
 isDoMakeMode (Right (Right DoMake)) = True
 isDoMakeMode _ = False
 
-#ifdef GHCI
+-- #ifdef GHCI
 isInteractiveMode :: PostLoadMode -> Bool
 isInteractiveMode DoInteractive = True
 isInteractiveMode _             = False
-#endif
+-- #endif
 
 -- isInterpretiveMode: byte-code compiler involved
 isInterpretiveMode :: PostLoadMode -> Bool
@@ -656,10 +656,10 @@ showBanner :: PostLoadMode -> DynFlags -> IO ()
 showBanner _postLoadMode dflags = do
    let verb = verbosity dflags
 
-#ifdef GHCI
+-- #ifdef GHCI
    -- Show the GHCi banner
    when (isInteractiveMode _postLoadMode && verb >= 1) $ putStrLn ghciWelcomeMsg
-#endif
+-- #endif
 
    -- Display details of the configuration in verbose mode
    when (verb >= 2) $

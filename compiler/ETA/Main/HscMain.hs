@@ -62,7 +62,7 @@ module ETA.Main.HscMain
     , hscTcRnGetInfo
     , hscCheckSafe
     , hscGetSafe
-#ifdef GHCI
+-- #ifdef GHCI
     , hscIsGHCiMonad
     , hscGetModuleInterface
     , hscRnImportDecls
@@ -73,7 +73,7 @@ module ETA.Main.HscMain
     , hscCompileCoreExpr
     -- * Low-level exports for hooks
     , hscCompileCoreExpr'
-#endif
+-- #endif
       -- We want to make sure that we export enough to be able to redefine
       -- hscFileFrontEnd in client code
     , hscParse', hscSimplify', hscDesugar', tcRnModule'
@@ -83,7 +83,7 @@ module ETA.Main.HscMain
     , hscFileFrontEnd, genericHscFrontend, dumpIfaceStats
     ) where
 
-#ifdef GHCI
+-- #ifdef GHCI
 import ETA.BasicTypes.Id
 import ETA.BasicTypes.BasicTypes       ( HValue )
 import ETA.Interactive.ByteCodeGen      ( byteCodeGen, coreExprToBCOs )
@@ -93,13 +93,13 @@ import ETA.Types.Type             ( Type )
 import ETA.Prelude.PrelNames
 import {- Kind parts of -} ETA.Types.Type         ( Kind )
 import ETA.Core.CoreLint         ( lintInteractiveExpr )
-import ETA.DeSugar.DsMeta           ( templateHaskellNames )
+-- import ETA.DeSugar.DsMeta           ( templateHaskellNames )
 import ETA.BasicTypes.VarEnv           ( emptyTidyEnv )
 import ETA.Utils.Panic
 import ETA.BasicTypes.ConLike
 
 import GHC.Exts
-#endif
+-- #endif
 
 import ETA.BasicTypes.Module
 import ETA.BasicTypes.RdrName
@@ -173,6 +173,8 @@ import qualified Data.Text as T
 import Control.Arrow((&&&), first)
 import Data.Foldable(fold)
 
+import GHCi.InfoTable (rtsIsProfiled)
+
 {- **********************************************************************
 %*                                                                      *
                 Initialisation
@@ -202,9 +204,9 @@ knownKeyNames :: [Name]      -- Put here to avoid loops involving DsMeta,
 knownKeyNames =              -- where templateHaskellNames are defined
     map getName wiredInThings
         ++ basicKnownKeyNames
-#ifdef GHCI
-        ++ templateHaskellNames
-#endif
+-- #ifdef GHCI
+        ++ (error "Hscmain.hs: fix me") -- templateHaskellNames
+-- #endif
 
 -- -----------------------------------------------------------------------------
 
@@ -273,13 +275,13 @@ ioMsgMaybe' ioA = do
 -- -----------------------------------------------------------------------------
 -- | Lookup things in the compiler's environment
 
-#ifdef GHCI
+-- #ifdef GHCI
 hscTcRnLookupRdrName :: HscEnv -> Located RdrName -> IO [Name]
 hscTcRnLookupRdrName hsc_env0 rdr_name
   = runInteractiveHsc hsc_env0 $
     do { hsc_env <- getHscEnv
        ; ioMsgMaybe $ tcRnLookupRdrName hsc_env rdr_name }
-#endif
+-- #endif
 
 hscTcRcLookupName :: HscEnv -> Name -> IO (Maybe TyThing)
 hscTcRcLookupName hsc_env0 name = runInteractiveHsc hsc_env0 $ do
@@ -295,7 +297,7 @@ hscTcRnGetInfo hsc_env0 name
     do { hsc_env <- getHscEnv
        ; ioMsgMaybe' $ tcRnGetInfo hsc_env name }
 
-#ifdef GHCI
+-- #ifdef GHCI
 hscIsGHCiMonad :: HscEnv -> String -> IO Name
 hscIsGHCiMonad hsc_env name
   = runHsc hsc_env $ ioMsgMaybe $ isGHCiMonad hsc_env name
@@ -311,7 +313,7 @@ hscRnImportDecls :: HscEnv -> [LImportDecl RdrName] -> IO GlobalRdrEnv
 hscRnImportDecls hsc_env0 import_decls = runInteractiveHsc hsc_env0 $ do
   hsc_env <- getHscEnv
   ioMsgMaybe $ tcRnImportDecls hsc_env import_decls
-#endif
+-- #endif
 
 -- -----------------------------------------------------------------------------
 -- | parse a file, returning the abstract syntax
@@ -1013,7 +1015,7 @@ hscCheckSafe' dflags m l = do
         let pkgIfaceT = eps_PIT hsc_eps
             homePkgT  = hsc_HPT hsc_env
             iface     = lookupIfaceByModule dflags homePkgT pkgIfaceT m
-#ifdef GHCI
+-- #ifdef GHCI
         -- the 'lookupIfaceByModule' method will always fail when calling from GHCi
         -- as the compiler hasn't filled in the various module tables
         -- so we need to call 'getModuleInterface' to load from disk
@@ -1021,9 +1023,9 @@ hscCheckSafe' dflags m l = do
             Just _  -> return iface
             Nothing -> snd `fmap` (liftIO $ getModuleInterface hsc_env m)
         return iface'
-#else
-        return iface
-#endif
+-- #else
+--         return iface
+-- #endif
 
 
     isHomePkg :: Module -> Bool
@@ -1266,7 +1268,7 @@ hscInteractive :: HscEnv
                -> CgGuts
                -> ModSummary
                -> IO (Maybe FilePath, CompiledByteCode, ModBreaks)
-#ifdef GHCI
+-- #ifdef GHCI
 hscInteractive hsc_env cgguts mod_summary = do
     let dflags = hsc_dflags hsc_env
     let CgGuts{ -- This is the last use of the ModGuts in a compilation.
@@ -1293,9 +1295,9 @@ hscInteractive hsc_env cgguts mod_summary = do
     (_istub_h_exists, istub_c_exists)
         <- outputForeignStubs dflags this_mod location foreign_stubs
     return (istub_c_exists, comp_bc, mod_breaks)
-#else
-hscInteractive _ _ = panic "GHC not compiled with interpreter"
-#endif
+-- #else
+-- hscInteractive _ _ = panic "GHC not compiled with interpreter"
+-- #endif
 
 myCoreToStg :: DynFlags -> Module -> CoreProgram
             -> IO ( [StgBinding] -- output program
@@ -1327,7 +1329,7 @@ A naked expression returns a singleton Name [it]. The stmt is lifted into the
 IO monad as explained in Note [Interactively-bound Ids in GHCi] in HscTypes
 -}
 
-#ifdef GHCI
+-- #ifdef GHCI
 -- | Compile a stmt all the way to an HValue, but don't run it
 --
 -- We return Nothing to indicate an empty statement (or comment only), not a
@@ -1500,7 +1502,7 @@ hscParseStmtWithLocation source linenumber stmt =
 
 hscParseType :: String -> Hsc (LHsType RdrName)
 hscParseType = hscParseThing parseType
-#endif
+-- #endif
 
 hscParseIdentifier :: HscEnv -> String -> IO (Located RdrName)
 hscParseIdentifier hsc_env str =
@@ -1583,7 +1585,7 @@ mkModGuts mod safe binds =
 %*                                                                      *
 %********************************************************************* -}
 
-#ifdef GHCI
+-- #ifdef GHCI
 hscCompileCoreExpr :: HscEnv -> SrcSpan -> CoreExpr -> IO HValue
 hscCompileCoreExpr hsc_env =
   lookupHook hscCompileCoreExprHook hscCompileCoreExpr' (hsc_dflags hsc_env) hsc_env
@@ -1616,7 +1618,7 @@ hscCompileCoreExpr' hsc_env srcspan ds_expr
          ; hval <- linkExpr hsc_env srcspan bcos
 
          ; return hval }
-#endif
+-- #endif
 
 
 {- **********************************************************************

@@ -23,7 +23,7 @@ import ETA.BasicTypes.RdrName
 import ETA.TypeCheck.FamInst
 import ETA.TypeCheck.TcRnMonad
 import ETA.TypeCheck.TcHsType
-import ETA.TypeCheck.TcExpr
+-- import ETA.TypeCheck.TcExpr (tcPolyExpr)
 import ETA.TypeCheck.TcEnv
 import ETA.TypeCheck.TcType
 import ETA.Prelude.TysWiredIn (unitTyCon)
@@ -45,6 +45,8 @@ import ETA.Utils.FastString
 import ETA.Utils.Maybes
 
 import Data.Maybe(fromMaybe)
+
+tcPolyExpr = undefined
 
 -- Defines a binding
 isForeignImport :: LForeignDecl name -> Bool

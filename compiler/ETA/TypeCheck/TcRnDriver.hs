@@ -8,7 +8,7 @@
 {-# LANGUAGE CPP, NondecreasingIndentation #-}
 
 module ETA.TypeCheck.TcRnDriver (
-#ifdef GHCI
+-- #ifdef GHCI
         tcRnStmt, tcRnExpr, tcRnType,
         tcRnImportDecls,
         tcRnLookupRdrName,
@@ -16,17 +16,17 @@ module ETA.TypeCheck.TcRnDriver (
         tcRnDeclsi,
         isGHCiMonad,
         runTcInteractive,    -- Used by GHC API clients (Trac #8878)
-#endif
+-- #endif;
         tcRnLookupName,
         tcRnGetInfo,
         tcRnModule, tcRnModuleTcRnM,
         tcTopSrcDecls,
     ) where
 
-#ifdef GHCI
-import {-# SOURCE #-} TcSplice ( runQuasi, traceSplice, SpliceInfo(..) )
-import RnSplice ( rnTopSpliceDecls )
-#endif
+-- #ifdef GHCI
+import {-# SOURCE #-} ETA.TypeCheck.TcSplice ( runQuasi, traceSplice, SpliceInfo(..) )
+import ETA.Rename.RnSplice ( rnTopSpliceDecls )
+-- #endif
 
 import ETA.Main.DynFlags
 import ETA.Main.StaticFlags
@@ -34,7 +34,8 @@ import ETA.HsSyn.HsSyn
 import ETA.Prelude.PrelNames
 import ETA.BasicTypes.RdrName
 import ETA.TypeCheck.TcHsSyn
-import ETA.TypeCheck.TcExpr
+import {-# SOURCE #-}ETA.TypeCheck.TcExpr (tcInferRho, tcMonoExpr)
+-- import ETA.TypeCheck.TcExpr
 import ETA.TypeCheck.TcRnMonad
 import ETA.TypeCheck.TcEvidence
 import ETA.Main.PprTyThing( pprTyThing )
@@ -84,7 +85,7 @@ import ETA.Types.CoAxiom
 import ETA.Main.Annotations
 import Data.List ( sortBy )
 import Data.Ord
-#ifdef GHCI
+-- #ifdef GHCI
 import ETA.BasicTypes.BasicTypes hiding( SuccessFlag(..) )
 import ETA.TypeCheck.TcType   ( isUnitTy, isTauTy )
 import ETA.TypeCheck.TcHsType
@@ -92,11 +93,11 @@ import ETA.TypeCheck.TcMatches
 import ETA.Rename.RnTypes
 import ETA.Rename.RnExpr
 import ETA.BasicTypes.MkId
-import TidyPgm    ( globaliseAndTidyId )
+import ETA.Main.TidyPgm    ( globaliseAndTidyId )
 import ETA.Prelude.TysWiredIn ( unitTy, mkListTy )
 import ETA.Main.DynamicLoading ( loadPlugins )
 import ETA.Main.Plugins ( tcPlugin )
-#endif
+-- #endif
 import ETA.Main.TidyPgm    ( mkBootModDetailsTc )
 
 import ETA.Utils.FastString
@@ -544,7 +545,7 @@ tc_rn_src_decls boot_details ds
       ; (tcg_env, rn_decls) <- rnTopSrcDecls extra_deps first_group
                 -- rnTopSrcDecls fails if there are any errors
 
-#ifdef GHCI
+-- #ifdef GHCI
         -- Get TH-generated top-level declarations and make sure they don't
         -- contain any splices since we don't handle that at the moment
       ; th_topdecls_var <- fmap tcg_th_topdecls getGblEnv
@@ -576,7 +577,7 @@ tc_rn_src_decls boot_details ds
 
                     ; return (tcg_env, appendGroups rn_decls th_rn_decls)
                     }
-#endif /* GHCI */
+-- #endif /* GHCI */
 
       -- Type check all declarations
       ; (tcg_env, tcl_env) <- setGblEnv tcg_env $
@@ -586,22 +587,22 @@ tc_rn_src_decls boot_details ds
       ; setEnvs (tcg_env, tcl_env) $
         case group_tail of
           { Nothing -> do { tcg_env <- checkMain       -- Check for `main'
-#ifdef GHCI
+-- #ifdef GHCI
                             -- Run all module finalizers
                           ; th_modfinalizers_var <- fmap tcg_th_modfinalizers getGblEnv
                           ; modfinalizers <- readTcRef th_modfinalizers_var
                           ; writeTcRef th_modfinalizers_var []
                           ; mapM_ runQuasi modfinalizers
-#endif /* GHCI */
+-- #endif /* GHCI */
                           ; return (tcg_env, tcl_env)
                           }
 
-#ifndef GHCI
-            -- There shouldn't be a splice
-          ; Just (SpliceDecl {}, _) ->
-            failWithTc (text "Can't do a top-level splice; need a bootstrapped compiler")
-          }
-#else
+-- #ifndef GHCI
+--             -- There shouldn't be a splice
+--           ; Just (SpliceDecl {}, _) ->
+--             failWithTc (text "Can't do a top-level splice; need a bootstrapped compiler")
+--           }
+-- #else
             -- If there's a splice, we must carry on
           ; Just (SpliceDecl (L _ splice) _, rest_ds) ->
             do { -- Rename the splice expression, and get its supporting decls
@@ -612,7 +613,7 @@ tc_rn_src_decls boot_details ds
                  tc_rn_src_decls boot_details (spliced_decls ++ rest_ds)
                }
           }
-#endif /* GHCI */
+-- #endif /* GHCI */
       }
 
 {-
@@ -1465,7 +1466,7 @@ runTcInteractive hsc_env thing_inside
                  , c <- tyConDataCons t ]
 
 
-#ifdef GHCI
+-- #ifdef GHCI
 -- | The returned [Id] is the list of new Ids bound by this statement. It can
 -- be used to extend the InteractiveContext via extendInteractiveContext.
 --
@@ -1896,7 +1897,7 @@ tcRnDeclsi hsc_env local_decls =
 
     setGlobalTypeEnv tcg_env' final_type_env
 
-#endif /* GHCi */
+-- #endif /* GHCi */
 
 {-
 ************************************************************************
@@ -1906,7 +1907,7 @@ tcRnDeclsi hsc_env local_decls =
 ************************************************************************
 -}
 
-#ifdef GHCI
+-- #ifdef GHCI
 -- | ASSUMES that the module is either in the 'HomePackageTable' or is
 -- a package module with an interface on disk.  If neither of these is
 -- true, then the result will be an error indicating the interface
@@ -1930,7 +1931,7 @@ tcRnLookupRdrName hsc_env (L loc rdr_name)
        ; let names = concat names_s
        ; when (null names) (addErrTc (ptext (sLit "Not in scope:") <+> quotes (ppr rdr_name)))
        ; return names }
-#endif
+-- #endif
 
 tcRnLookupName :: HscEnv -> Name -> IO (Messages, Maybe TyThing)
 tcRnLookupName hsc_env name
@@ -2160,12 +2161,12 @@ withTcPlugins hsc_env m =
        return (solve s, stop s)
 
 loadTcPlugins :: HscEnv -> IO [TcPlugin]
-#ifndef GHCI
-loadTcPlugins _ = return []
-#else
+-- #ifndef GHCI
+-- loadTcPlugins _ = return []
+-- #else
 loadTcPlugins hsc_env =
  do named_plugins <- loadPlugins hsc_env
     return $ catMaybes $ map load_plugin named_plugins
   where
     load_plugin (_, plug, opts) = tcPlugin plug opts
-#endif
+-- #endif

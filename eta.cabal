@@ -300,6 +300,9 @@ library
     other-modules:       ETA.Parser.Parser
                        , ETA.Parser.Lexer
                        , ETA.Parser.RdrHsSyn
+                       , InteractiveUI
+                       , GhciMonad
+                       , GhciTags
     build-depends:       base >= 4.7 && < 5
                        , bytestring
                        , text
@@ -319,7 +322,11 @@ library
                        , array
                        , containers
                        , cpphs
+                       , haskeline
+                       , deepseq
                        , unix-compat >= 0.4.3.1
+                       , template-haskell
+                       , ghci
 
     if os(windows)
         build-depends:   Win32

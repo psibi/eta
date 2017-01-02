@@ -29,7 +29,7 @@ instance Binary TH.Stmt
 instance Binary TH.Pat
 instance Binary TH.Exp
 instance Binary TH.Dec
-instance Binary TH.Overlap
+-- instance Binary TH.Overlap
 -- instance Binary TH.DerivClause
 -- instance Binary TH.DerivStrategy
 instance Binary TH.Guard
@@ -48,22 +48,22 @@ instance Binary TH.Pragma
 instance Binary TH.Safety
 instance Binary TH.Callconv
 instance Binary TH.Foreign
-instance Binary TH.Bang
-instance Binary TH.SourceUnpackedness
-instance Binary TH.SourceStrictness
-instance Binary TH.DecidedStrictness
+-- instance Binary TH.Bang
+-- instance Binary TH.SourceUnpackedness
+-- instance Binary TH.SourceStrictness
+-- instance Binary TH.DecidedStrictness
 instance Binary TH.FixityDirection
 instance Binary TH.OccName
 instance Binary TH.Con
 instance Binary TH.AnnLookup
 instance Binary TH.ModuleInfo
 instance Binary TH.Clause
-instance Binary TH.InjectivityAnn
-instance Binary TH.FamilyResultSig
-instance Binary TH.TypeFamilyHead
+-- instance Binary TH.InjectivityAnn
+-- instance Binary TH.FamilyResultSig
+-- instance Binary TH.TypeFamilyHead
 -- instance Binary TH.PatSynDir
 -- instance Binary TH.PatSynArgs
-
+instance Binary TH.Strict
 -- We need Binary TypeRep for serializing annotations
 
 instance Binary TyCon where

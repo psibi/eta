@@ -24,7 +24,7 @@ import ETA.TypeCheck.Inst
 import ETA.Types.InstEnv
 import ETA.TypeCheck.FamInst
 import ETA.Types.FamInstEnv
-import ETA.TypeCheck.TcDeriv
+-- import ETA.TypeCheck.TcDeriv (tcDeriving)
 import ETA.TypeCheck.TcEnv
 import ETA.TypeCheck.TcHsType
 import ETA.TypeCheck.TcUnify
@@ -60,6 +60,8 @@ import ETA.Utils.BooleanFormula ( isUnsatisfied, pprBooleanFormulaNice )
 import Control.Monad
 import ETA.Utils.Maybes     ( isNothing, isJust, whenIsJust )
 import Data.List  ( mapAccumL, partition )
+
+tcDeriving = undefined
 
 {-
 Typechecking instance declarations is done in two passes. The first
