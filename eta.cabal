@@ -297,8 +297,8 @@ library
                        , ETA.Debug
                        , ETA.Util
                        , ETA.Utils.JAR
-    other-modules:       ETA.Parser.Parser
                        , ETA.Parser.Lexer
+    other-modules:       ETA.Parser.Parser
                        , ETA.Parser.RdrHsSyn
                        , InteractiveUI
                        , GhciMonad

@@ -27,17 +27,19 @@ module GhciMonad (
 
 #include "ETA.h"
 
-import qualified GHC
+import qualified ETA.Main.GHC as GHC
 import ETA.Main.GhcMonad         hiding (liftIO)
 import ETA.Utils.Outputable       hiding (printForUser, printForUserPartWay)
-import qualified Outputable
+import qualified ETA.Utils.Outputable as Outputable
 import ETA.Utils.Util
+import qualified ETA.Utils.Util as Util
 import ETA.Main.DynFlags
 import ETA.Utils.FastString
 import ETA.Main.HscTypes
 import ETA.BasicTypes.SrcLoc
 import ETA.BasicTypes.Module
 import ETA.Interactive.ObjLink
+import qualified ETA.Interactive.ObjLink as ObjLink
 import ETA.Interactive.Linker
 
 import ETA.Utils.Exception

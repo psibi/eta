@@ -109,7 +109,7 @@ module ETA.Main.GHC (
         Resume(resumeStmt, resumeThreadId, resumeBreakInfo, resumeSpan,
                resumeHistory, resumeHistoryIx),
         History(historyBreakInfo, historyEnclosingDecls),
-        GHC.getHistorySpan, getHistoryModule,
+        ETA.Main.GHC.getHistorySpan, getHistoryModule,
         getResumeContext,
         abandon, abandonAll,
         InteractiveEval.back,
@@ -117,7 +117,8 @@ module ETA.Main.GHC (
         showModule,
         isModuleInterpreted,
         InteractiveEval.compileExpr, HValue, dynCompileExpr,
-        GHC.obtainTermFromId, GHC.obtainTermFromVal, reconstructType,
+        -- GHC.obtainTermFromId, GHC.obtainTermFromVal, 
+        -- reconstructType,
         modInfoModBreaks,
         ModBreaks(..), BreakIndex,
         BreakInfo(breakInfo_number, breakInfo_module),
@@ -264,6 +265,7 @@ module ETA.Main.GHC (
 import ETA.Interactive.ByteCodeInstr
 import ETA.Main.BreakArray
 import ETA.Main.InteractiveEval
+import qualified ETA.Main.InteractiveEval as InteractiveEval
 import ETA.TypeCheck.TcRnDriver       ( runTcInteractive )
 -- #endif
 
@@ -1384,13 +1386,13 @@ getHistorySpan :: GhcMonad m => History -> m SrcSpan
 getHistorySpan h = withSession $ \hsc_env ->
     return $ InteractiveEval.getHistorySpan hsc_env h
 
-obtainTermFromVal :: GhcMonad m => Int ->  Bool -> Type -> a -> m Term
-obtainTermFromVal bound force ty a = withSession $ \hsc_env ->
-    liftIO $ InteractiveEval.obtainTermFromVal hsc_env bound force ty a
+-- obtainTermFromVal :: GhcMonad m => Int ->  Bool -> Type -> a -> m Term
+-- obtainTermFromVal bound force ty a = withSession $ \hsc_env ->
+--     liftIO $ InteractiveEval.obtainTermFromVal hsc_env bound force ty a
 
-obtainTermFromId :: GhcMonad m => Int -> Bool -> Id -> m Term
-obtainTermFromId bound force id = withSession $ \hsc_env ->
-    liftIO $ InteractiveEval.obtainTermFromId hsc_env bound force id
+-- obtainTermFromId :: GhcMonad m => Int -> Bool -> Id -> m Term
+-- obtainTermFromId bound force id = withSession $ \hsc_env ->
+--     liftIO $ InteractiveEval.obtainTermFromId hsc_env bound force id
 
 -- #endif
 

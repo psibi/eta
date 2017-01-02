@@ -15,6 +15,7 @@ module GhciTags (
 
 import ETA.Utils.Exception
 import ETA.Main.GHC
+import qualified ETA.Main.GHC as GHC
 import GhciMonad
 import ETA.Utils.Outputable
 

@@ -255,15 +255,15 @@ main' postLoadMode dflags0 args flagWarnings = do
        DoMake                 -> doMake srcs
        DoMkDependHS           -> doMkDependHS (map fst srcs)
        StopBefore p           -> liftIO (oneShot hsc_env p srcs)
-       DoInteractive          -> liftIO $ putStrLn "ETAi not implemented yet" -- ghciUI srcs Nothing
-       DoEval exprs           -> liftIO $ putStrLn "ETAi not implemented yet" -- ghciUI srcs $ Just $ reverse exprs
+       DoInteractive          -> ghciUI srcs Nothing
+       DoEval exprs           -> ghciUI srcs $ Just $ reverse exprs
        DoAbiHash              -> abiHash (map fst srcs)
        ShowPackages           -> liftIO $ showPackages dflags6
 
   liftIO $ dumpFinalStats dflags6
 
 ghciUI :: [(FilePath, Maybe Phase)] -> Maybe [String] -> Ghc ()
-ghciUI     = undefined--TODO: GHCI interactiveUI defaultGhciSettings
+ghciUI     = interactiveUI defaultGhciSettings
 
 -- -----------------------------------------------------------------------------
 -- Splitting arguments into source files and object files.  This is where we

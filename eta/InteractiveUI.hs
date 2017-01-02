@@ -20,18 +20,17 @@ module InteractiveUI (
 
 #include "ETA.h"
 
--- GHCi
 import qualified GhciMonad ( args, runStmt )
 import GhciMonad hiding ( args, runStmt )
 import GhciTags
-import Debugger
+import ETA.Interactive.Debugger
 
 -- The GHC interface
 import ETA.Main.DynFlags
-import ETA.Main.DynFlags
+import qualified ETA.Main.DynFlags as DynFlags
 import ETA.Main.ErrUtils
 import ETA.Main.GhcMonad ( modifySession )
-import qualified ETA.Main.GHC
+import qualified ETA.Main.GHC as GHC
 import ETA.Main.GHC ( LoadHowMuch(..), Target(..),  TargetId(..), InteractiveImport(..),
              TyThing(..), Phase, BreakIndex, Resume, SingleStep, Ghc,
              handleSourceError )
@@ -44,7 +43,7 @@ import ETA.Main.Packages ( trusted, getPackageDetails, listVisibleModuleNames, p
 import ETA.Main.PprTyThing
 import ETA.BasicTypes.RdrName ( getGRE_NameQualifier_maybes )
 import ETA.BasicTypes.SrcLoc
-import qualified Lexer
+import qualified ETA.Parser.Lexer as Lexer
 
 import ETA.Utils.StringBuffer
 import ETA.Utils.Outputable hiding ( printForUser, printForUserPartWay, bold )
@@ -105,6 +104,8 @@ import GHC.Exts ( unsafeCoerce# )
 import GHC.IO.Exception ( IOErrorType(InvalidArgument) )
 import GHC.IO.Handle ( hFlushAll )
 import GHC.TopHandler ( topHandler )
+import qualified Control.Exception as Exception
+-----------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------
 
@@ -133,7 +134,7 @@ ghciWelcomeMsg = "GHCi, version " ++ cProjectVersion ++
 cmdName :: Command -> String
 cmdName (n,_,_) = n
 
-GLOBAL_VAR(macros_ref, [], [Command])
+-- GLOBAL_VAR(macros_ref, [], [Command])
 
 ghciCommands :: [Command]
 ghciCommands = [
@@ -353,6 +354,7 @@ interactiveUI config srcs maybe_exprs = do
    -- although GHCi compiles with -prof, it is not usable: the byte-code
    -- compiler and interpreter don't work with profiling.  So we check for
    -- this up front and emit a helpful error message (#2197)
+   liftIO $ print "1 - debug 1"
    i <- liftIO $ isProfiled
    when (i /= 0) $
      throwGhcException (InstallationError "GHCi cannot be used when compiled with -prof")
@@ -368,13 +370,14 @@ interactiveUI config srcs maybe_exprs = do
    _ <- liftIO $ newStablePtr stdin
    _ <- liftIO $ newStablePtr stdout
    _ <- liftIO $ newStablePtr stderr
-
+   liftIO $ print "1 - debug 2"
     -- Initialise buffering for the *interpreted* I/O system
-   initInterpBuffering
+   -- initInterpBuffering
 
    -- The initial set of DynFlags used for interactive evaluation is the same
    -- as the global DynFlags, plus -XExtendedDefaultRules and
    -- -XNoMonomorphismRestriction.
+   liftIO $ print "1 - debug 3"
    dflags <- getDynFlags
    let dflags' = (`xopt_set` Opt_ExtendedDefaultRules)
                . (`xopt_unset` Opt_MonomorphismRestriction)
@@ -382,29 +385,30 @@ interactiveUI config srcs maybe_exprs = do
    GHC.setInteractiveDynFlags dflags'
 
    lastErrLocationsRef <- liftIO $ newIORef []
+   liftIO $ print "1 - debug 4"
    progDynFlags <- GHC.getProgramDynFlags
    _ <- GHC.setProgramDynFlags $
       progDynFlags { log_action = ghciLogAction lastErrLocationsRef }
+   liftIO $ print "debug 2"
+--    liftIO $ when (isNothing maybe_exprs) $ do
+--         -- Only for GHCi (not runghc and ghc -e):
 
-   liftIO $ when (isNothing maybe_exprs) $ do
-        -- Only for GHCi (not runghc and ghc -e):
-
-        -- Turn buffering off for the compiled program's stdout/stderr
-        turnOffBuffering
-        -- Turn buffering off for GHCi's stdout
-        hFlush stdout
-        hSetBuffering stdout NoBuffering
-        -- We don't want the cmd line to buffer any input that might be
-        -- intended for the program, so unbuffer stdin.
-        hSetBuffering stdin NoBuffering
-        hSetBuffering stderr NoBuffering
-#if defined(mingw32_HOST_OS)
-        -- On Unix, stdin will use the locale encoding.  The IO library
-        -- doesn't do this on Windows (yet), so for now we use UTF-8,
-        -- for consistency with GHC 6.10 and to make the tests work.
-        hSetEncoding stdin utf8
-#endif
-
+--         -- Turn buffering off for the compiled program's stdout/stderr
+--         turnOffBuffering
+--         -- Turn buffering off for GHCi's stdout
+--         hFlush stdout
+--         hSetBuffering stdout NoBuffering
+--         -- We don't want the cmd line to buffer any input that might be
+--         -- intended for the program, so unbuffer stdin.
+--         -- hSetBuffering stdin NoBuffering
+--         -- hSetBuffering stderr NoBuffering
+-- #if defined(mingw32_HOST_OS)
+--         -- On Unix, stdin will use the locale encoding.  The IO library
+--         -- doesn't do this on Windows (yet), so for now we use UTF-8,
+--         -- for consistency with GHC 6.10 and to make the tests work.
+--         hSetEncoding stdin utf8
+-- #endif
+   liftIO $ print "debug 3"
    default_editor <- liftIO $ findEditor
    startGHCi (runGHCi srcs maybe_exprs)
         GHCiState{ progname           = default_progname,
@@ -982,14 +986,15 @@ toBreakIdAndLocation (Just inf) = do
                                   breakTick loc == nm ]
 
 printStoppedAtBreakInfo :: Resume -> [Name] -> GHCi ()
-printStoppedAtBreakInfo res names = do
-  printForUser $ ptext (sLit "Stopped at") <+>
-    ppr (GHC.resumeSpan res)
-  --  printTypeOfNames session names
-  let namesSorted = sortBy compareNames names
-  tythings <- catMaybes `liftM` mapM GHC.lookupName namesSorted
-  docs <- mapM pprTypeAndContents [i | AnId i <- tythings]
-  printForUserPartWay $ vcat docs
+printStoppedAtBreakInfo _ _ = return ()
+-- printStoppedAtBreakInfo res names = do
+--   printForUser $ ptext (sLit "Stopped at") <+>
+--     ppr (GHC.resumeSpan res)
+--   --  printTypeOfNames session names
+--   let namesSorted = sortBy compareNames names
+--   tythings <- catMaybes `liftM` mapM GHC.lookupName namesSorted
+--   docs <- mapM pprTypeAndContents [i | AnId i <- tythings]
+--   printForUserPartWay $ vcat docs
 
 printTypeOfNames :: [Name] -> GHCi ()
 printTypeOfNames names
@@ -1045,27 +1050,30 @@ lookupCommand str = do
            Nothing -> BadCommand
 
 lookupCommand' :: String -> GHCi (Maybe Command)
-lookupCommand' ":" = return Nothing
-lookupCommand' str' = do
-  macros    <- liftIO $ readIORef macros_ref
-  ghci_cmds <- ghci_commands `fmap` getGHCiState
-  let (str, xcmds) = case str' of
-          ':' : rest -> (rest, [])     -- "::" selects a builtin command
-          _          -> (str', macros) -- otherwise include macros in lookup
+lookupCommand' _ = return Nothing
 
-      lookupExact  s = find $ (s ==)           . cmdName
-      lookupPrefix s = find $ (s `isPrefixOf`) . cmdName
+-- lookupCommand' :: String -> GHCi (Maybe Command)
+-- lookupCommand' ":" = return Nothing
+-- lookupCommand' str' = do
+--   macros    <- liftIO $ readIORef macros_ref
+--   ghci_cmds <- ghci_commands `fmap` getGHCiState
+--   let (str, xcmds) = case str' of
+--           ':' : rest -> (rest, [])     -- "::" selects a builtin command
+--           _          -> (str', macros) -- otherwise include macros in lookup
 
-      builtinPfxMatch = lookupPrefix str ghci_cmds
+--       lookupExact  s = find $ (s ==)           . cmdName
+--       lookupPrefix s = find $ (s `isPrefixOf`) . cmdName
 
-  -- first, look for exact match (while preferring macros); then, look
-  -- for first prefix match (preferring builtins), *unless* a macro
-  -- overrides the builtin; see #8305 for motivation
-  return $ lookupExact str xcmds <|>
-           lookupExact str ghci_cmds <|>
-           (builtinPfxMatch >>= \c -> lookupExact (cmdName c) xcmds) <|>
-           builtinPfxMatch <|>
-           lookupPrefix str xcmds
+--       builtinPfxMatch = lookupPrefix str ghci_cmds
+
+--   -- first, look for exact match (while preferring macros); then, look
+--   -- for first prefix match (preferring builtins), *unless* a macro
+--   -- overrides the builtin; see #8305 for motivation
+--   return $ lookupExact str xcmds <|>
+--            lookupExact str ghci_cmds <|>
+--            (builtinPfxMatch >>= \c -> lookupExact (cmdName c) xcmds) <|>
+--            builtinPfxMatch <|>
+--            lookupPrefix str xcmds
 
 getCurrentBreakSpan :: GHCi (Maybe SrcSpan)
 getCurrentBreakSpan = do
@@ -1275,35 +1283,38 @@ chooseEditFile =
 -- :def
 
 defineMacro :: Bool{-overwrite-} -> String -> GHCi ()
-defineMacro _ (':':_) =
-  liftIO $ putStrLn "macro name cannot start with a colon"
-defineMacro overwrite s = do
-  let (macro_name, definition) = break isSpace s
-  macros <- liftIO (readIORef macros_ref)
-  let defined = map cmdName macros
-  if (null macro_name)
-        then if null defined
-                then liftIO $ putStrLn "no macros defined"
-                else liftIO $ putStr ("the following macros are defined:\n" ++
-                                      unlines defined)
-        else do
-  if (not overwrite && macro_name `elem` defined)
-        then throwGhcException (CmdLineError
-                ("macro '" ++ macro_name ++ "' is already defined"))
-        else do
+defineMacro _ (':':_) = return ()
 
-  let filtered = [ cmd | cmd <- macros, cmdName cmd /= macro_name ]
+-- defineMacro :: Bool{-overwrite-} -> String -> GHCi ()
+-- defineMacro _ (':':_) =
+--   liftIO $ putStrLn "macro name cannot start with a colon"
+-- defineMacro overwrite s = do
+--   let (macro_name, definition) = break isSpace s
+--   macros <- liftIO (readIORef macros_ref)
+--   let defined = map cmdName macros
+--   if (null macro_name)
+--         then if null defined
+--                 then liftIO $ putStrLn "no macros defined"
+--                 else liftIO $ putStr ("the following macros are defined:\n" ++
+--                                       unlines defined)
+--         else do
+--   if (not overwrite && macro_name `elem` defined)
+--         then throwGhcException (CmdLineError
+--                 ("macro '" ++ macro_name ++ "' is already defined"))
+--         else do
 
-  -- give the expression a type signature, so we can be sure we're getting
-  -- something of the right type.
-  let new_expr = '(' : definition ++ ") :: String -> IO String"
+--   let filtered = [ cmd | cmd <- macros, cmdName cmd /= macro_name ]
 
-  -- compile the expression
-  handleSourceError (\e -> GHC.printException e) $
-   do
-    hv <- GHC.compileExpr new_expr
-    liftIO (writeIORef macros_ref -- later defined macros have precedence
-            ((macro_name, lift . runMacro hv, noCompletion) : filtered))
+--   -- give the expression a type signature, so we can be sure we're getting
+--   -- something of the right type.
+--   let new_expr = '(' : definition ++ ") :: String -> IO String"
+
+--   -- compile the expression
+--   handleSourceError (\e -> GHC.printException e) $
+--    do
+--     hv <- GHC.compileExpr new_expr
+--     liftIO (writeIORef macros_ref -- later defined macros have precedence
+--             ((macro_name, lift . runMacro hv, noCompletion) : filtered))
 
 runMacro :: GHC.HValue{-String -> IO String-} -> String -> GHCi Bool
 runMacro fun s = do
@@ -1316,14 +1327,17 @@ runMacro fun s = do
 -- :undef
 
 undefineMacro :: String -> GHCi ()
-undefineMacro str = mapM_ undef (words str)
- where undef macro_name = do
-        cmds <- liftIO (readIORef macros_ref)
-        if (macro_name `notElem` map cmdName cmds)
-           then throwGhcException (CmdLineError
-                ("macro '" ++ macro_name ++ "' is not defined"))
-           else do
-            liftIO (writeIORef macros_ref (filter ((/= macro_name) . cmdName) cmds))
+undefineMacro _ = return ()
+
+-- undefineMacro :: String -> GHCi ()
+-- undefineMacro str = mapM_ undef (words str)
+--  where undef macro_name = do
+--         cmds <- liftIO (readIORef macros_ref)
+--         if (macro_name `notElem` map cmdName cmds)
+--            then throwGhcException (CmdLineError
+--                 ("macro '" ++ macro_name ++ "' is not defined"))
+--            else do
+--             liftIO (writeIORef macros_ref (filter ((/= macro_name) . cmdName) cmds))
 
 
 -----------------------------------------------------------------------------
@@ -1740,7 +1754,7 @@ browseModule bang modl exports_only = do
             qualifier  = maybe "-- defined locally"
                              (("-- imported via "++) . intercalate ", "
                                . map GHC.moduleNameString)
-            importInfo = RdrName.getGRE_NameQualifier_maybes rdr_env
+            importInfo = getGRE_NameQualifier_maybes rdr_env
 
             modNames :: [[Maybe [ModuleName]]]
             modNames   = map (importInfo . GHC.getName) things
@@ -2345,7 +2359,7 @@ showBindings = do
         fidocs = map GHC.pprFamInst finsts
     mapM_ printForUserPartWay (docs ++ idocs ++ fidocs)
   where
-    makeDoc (AnId i) = pprTypeAndContents i
+    makeDoc (AnId i) = error "makeDoc"
     makeDoc tt = do
         mb_stuff <- GHC.getInfo False (getName tt)
         return $ maybe (text "") pprTT mb_stuff
@@ -2494,24 +2508,29 @@ ghciCompleteWord line@(left,_) = case firstWord of
     (firstWord,rest) = break isSpace $ dropWhile isSpace $ reverse left
     lookupCompletion ('!':_) = return completeFilename
     lookupCompletion c = do
-        maybe_cmd <- lookupCommand' c
+        maybe_cmd <- return Nothing
+        -- maybe_cmd <- lookupCommand' c
         case maybe_cmd of
             Just (_,_,f) -> return f
             Nothing -> return completeFilename
 
-completeGhciCommand = wrapCompleter " " $ \w -> do
-  macros <- liftIO $ readIORef macros_ref
-  cmds   <- ghci_commands `fmap` getGHCiState
-  let macro_names = map (':':) . map cmdName $ macros
-  let command_names = map (':':) . map cmdName $ cmds
-  let{ candidates = case w of
-      ':' : ':' : _ -> map (':':) command_names
-      _ -> nub $ macro_names ++ command_names }
-  return $ filter (w `isPrefixOf`) candidates
+completeGhciCommand = undefined
 
-completeMacro = wrapIdentCompleter $ \w -> do
-  cmds <- liftIO $ readIORef macros_ref
-  return (filter (w `isPrefixOf`) (map cmdName cmds))
+-- completeGhciCommand = wrapCompleter " " $ \w -> do
+--   macros <- liftIO $ readIORef macros_ref
+--   cmds   <- ghci_commands `fmap` getGHCiState
+--   let macro_names = map (':':) . map cmdName $ macros
+--   let command_names = map (':':) . map cmdName $ cmds
+--   let{ candidates = case w of
+--       ':' : ':' : _ -> map (':':) command_names
+--       _ -> nub $ macro_names ++ command_names }
+--   return $ filter (w `isPrefixOf`) candidates
+
+completeMacro = undefined
+
+-- completeMacro = wrapIdentCompleter $ \w -> do
+--   cmds <- liftIO $ readIORef macros_ref
+--   return (filter (w `isPrefixOf`) (map cmdName cmds))
 
 completeIdentifier = wrapIdentCompleter $ \w -> do
   rdrs <- GHC.getRdrNamesInScope
@@ -2606,8 +2625,9 @@ printCmd  = pprintCommand True False
 forceCmd  = pprintCommand False True
 
 pprintCommand :: Bool -> Bool -> String -> GHCi ()
-pprintCommand bind force str = do
-  pprintClosureCommand bind force str
+pprintCommand bind force str = return ()
+-- pprintCommand bind force str = do
+--   pprintClosureCommand bind force str
 
 stepCmd :: String -> GHCi ()
 stepCmd arg = withSandboxOnly ":step" $ step arg

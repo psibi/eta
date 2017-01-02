@@ -15,25 +15,26 @@
 module ETA.Main.BreakArray
     (
       BreakArray
-#ifdef GHCI
+-- #ifdef GHCI
           (BA) -- constructor is exported only for ByteCodeGen
-#endif
+-- #endif
     , newBreakArray
-#ifdef GHCI
+-- #ifdef GHCI
     , getBreak
     , setBreakOn
     , setBreakOff
     , showBreakArray
-#endif
+-- #endif
     ) where
 
 import ETA.Main.DynFlags
 
-#ifdef GHCI
+-- #ifdef GHCI
 import Control.Monad
 
 import ETA.Utils.ExtsCompat46
 import GHC.IO ( IO(..) )
+import GHCi.InfoTable (wORD_SIZE)
 
 data BreakArray = BA (MutableByteArray# RealWorld)
 
@@ -73,7 +74,8 @@ safeIndex :: DynFlags -> BreakArray -> Int -> Bool
 safeIndex dflags array index = index < size dflags array && index >= 0
 
 size :: DynFlags -> BreakArray -> Int
-size dflags (BA array) = (I# (sizeofMutableByteArray# array)) `div` wORD_SIZE dflags
+size dflags (BA array) = (I# (sizeofMutableByteArray# array)) `div` wORD_SIZE
+-- size dflags (BA array) = (I# (sizeofMutableByteArray# array)) `div` wORD_SIZE dflags
 
 allocBA :: Int -> IO BreakArray
 allocBA (I# sz) = IO $ \s1 ->
@@ -82,7 +84,8 @@ allocBA (I# sz) = IO $ \s1 ->
 -- create a new break array and initialise elements to zero
 newBreakArray :: DynFlags -> Int -> IO BreakArray
 newBreakArray dflags entries@(I# sz) = do
-    BA array <- allocBA (entries * wORD_SIZE dflags)
+    BA array <- allocBA (entries * wORD_SIZE)
+    -- BA array <- allocBA (entries * wORD_SIZE dflags)
     case breakOff of
         W# off -> do    -- Todo: there must be a better way to write zero as a Word!
             let loop n | n ==# sz = return ()
@@ -106,16 +109,16 @@ readBA# array i = IO $ \s ->
 readBreakArray :: BreakArray -> Int -> IO Word
 readBreakArray (BA array) (I# i) = readBA# array i
 
-#else /* !GHCI */
+-- #else /* !GHCI */
 
--- stub implementation to make main/, etc., code happier.
--- IOArray and IOUArray are increasingly non-portable,
--- still don't have quite the same interface, and (for GHCI)
--- presumably have a different representation.
-data BreakArray = Unspecified
+-- -- stub implementation to make main/, etc., code happier.
+-- -- IOArray and IOUArray are increasingly non-portable,
+-- -- still don't have quite the same interface, and (for GHCI)
+-- -- presumably have a different representation.
+-- data BreakArray = Unspecified
 
-newBreakArray :: DynFlags -> Int -> IO BreakArray
-newBreakArray _ _ = return Unspecified
+-- newBreakArray :: DynFlags -> Int -> IO BreakArray
+-- newBreakArray _ _ = return Unspecified
 
-#endif /* GHCI */
+-- #endif /* GHCI */
 

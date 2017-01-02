@@ -32,7 +32,10 @@ module ETA.Main.InteractiveEval (
         showModule,
         isModuleInterpreted,
         compileExpr, dynCompileExpr,
-        Term(..), obtainTermFromId, obtainTermFromVal, reconstructType
+        -- Term(..), 
+        -- obtainTermFromId, 
+        -- obtainTermFromVal, 
+        -- reconstructType
 -- #endif
         ) where
 
@@ -54,6 +57,7 @@ import ETA.Types.Type     hiding( typeKind )
 import ETA.TypeCheck.TcType           hiding( typeKind )
 import ETA.BasicTypes.Var
 import ETA.BasicTypes.Id
+import qualified ETA.BasicTypes.Id as Id
 import ETA.BasicTypes.Name             hiding ( varName )
 import ETA.BasicTypes.NameSet
 import ETA.BasicTypes.Avail
@@ -62,6 +66,7 @@ import ETA.BasicTypes.VarSet
 import ETA.BasicTypes.VarEnv
 import ETA.Interactive.ByteCodeInstr
 import ETA.Interactive.Linker
+import qualified ETA.Interactive.Linker as Linker
 import ETA.Main.DynFlags
 import ETA.BasicTypes.Unique
 import ETA.BasicTypes.UniqSupply
@@ -88,6 +93,7 @@ import Foreign.C
 import GHC.Exts
 import Data.Array
 import ETA.Utils.Exception
+import qualified Control.Exception as Exception
 import Control.Concurrent
 import System.IO.Unsafe
 
@@ -693,21 +699,22 @@ rttiEnvironment hsc_env@HscEnv{hsc_IC=ic} = do
          else do
            mb_new_ty <- reconstructType hsc_env 10 id
            let old_ty = idType id
-           case mb_new_ty of
-             Nothing -> return hsc_env
-             Just new_ty -> do
-              case improveRTTIType hsc_env old_ty new_ty of
-               Nothing -> return $
-                        WARN(True, text (":print failed to calculate the "
-                                           ++ "improvement for a type")) hsc_env
-               Just subst -> do
-                 let dflags = hsc_dflags hsc_env
-                 when (dopt Opt_D_dump_rtti dflags) $
-                      printInfoForUser dflags alwaysQualify $
-                      fsep [text "RTTI Improvement for", ppr id, equals, ppr subst]
+           return hsc_env
+           -- case mb_new_ty of
+           --   Nothing -> return hsc_env
+           --   Just new_ty -> do
+           --    case improveRTTIType hsc_env old_ty new_ty of
+           --     Nothing -> return $
+           --              WARN(True, text (":print failed to calculate the "
+           --                                 ++ "improvement for a type")) hsc_env
+           --     Just subst -> do
+           --       let dflags = hsc_dflags hsc_env
+           --       when (dopt Opt_D_dump_rtti dflags) $
+           --            printInfoForUser dflags alwaysQualify $
+           --            fsep [text "RTTI Improvement for", ppr id, equals, ppr subst]
 
-                 let ic' = substInteractiveContext ic subst
-                 return hsc_env{hsc_IC=ic'}
+           --       let ic' = substInteractiveContext ic subst
+           --       return hsc_env{hsc_IC=ic'}
 
 getIdValFromApStack :: HValue -> Int -> IO (Maybe HValue)
 getIdValFromApStack apStack (I# stackDepth) = do
@@ -1030,20 +1037,21 @@ isModuleInterpreted mod_summary = withSession $ \hsc_env ->
 ----------------------------------------------------------------------------
 -- RTTI primitives
 
-obtainTermFromVal :: HscEnv -> Int -> Bool -> Type -> a -> IO Term
-obtainTermFromVal hsc_env bound force ty x =
-              cvObtainTerm hsc_env bound force ty (unsafeCoerce# x)
+-- obtainTermFromVal :: HscEnv -> Int -> Bool -> Type -> a -> IO Term
+-- obtainTermFromVal hsc_env bound force ty x =
+--               cvObtainTerm hsc_env bound force ty (unsafeCoerce# x)
 
-obtainTermFromId :: HscEnv -> Int -> Bool -> Id -> IO Term
-obtainTermFromId hsc_env bound force id =  do
-              hv <- Linker.getHValue hsc_env (varName id)
-              cvObtainTerm hsc_env bound force (idType id) hv
+-- obtainTermFromId :: HscEnv -> Int -> Bool -> Id -> IO Term
+-- obtainTermFromId hsc_env bound force id =  do
+--               hv <- Linker.getHValue hsc_env (varName id)
+--               cvObtainTerm hsc_env bound force (idType id) hv
 
 -- Uses RTTI to reconstruct the type of an Id, making it less polymorphic
 reconstructType :: HscEnv -> Int -> Id -> IO (Maybe Type)
-reconstructType hsc_env bound id = do
-              hv <- Linker.getHValue hsc_env (varName id)
-              cvReconstructType hsc_env bound (idType id) hv
+reconstructType = error "reconstructType"
+-- reconstructType hsc_env bound id = do
+--               hv <- Linker.getHValue hsc_env (varName id)
+--               cvReconstructType hsc_env bound (idType id) hv
 
 mkRuntimeUnkTyVar :: Name -> Kind -> TyVar
 mkRuntimeUnkTyVar name kind = mkTcTyVar name kind RuntimeUnk

@@ -11,6 +11,7 @@ module GHCi.InfoTable
 -- #ifdef GHCI
   , mkConInfoTable
   , rtsIsProfiled
+  , wORD_SIZE
 -- #endif
   ) where
 
@@ -342,23 +343,24 @@ byte7 w = fromIntegral (w `shiftR` 56)
 -- read & write intfo tables
 
 -- entry point for direct returns for created constr itbls
-foreign import ccall "&stg_interp_constr1_entry" stg_interp_constr1_entry :: EntryFunPtr
-foreign import ccall "&stg_interp_constr2_entry" stg_interp_constr2_entry :: EntryFunPtr
-foreign import ccall "&stg_interp_constr3_entry" stg_interp_constr3_entry :: EntryFunPtr
-foreign import ccall "&stg_interp_constr4_entry" stg_interp_constr4_entry :: EntryFunPtr
-foreign import ccall "&stg_interp_constr5_entry" stg_interp_constr5_entry :: EntryFunPtr
-foreign import ccall "&stg_interp_constr6_entry" stg_interp_constr6_entry :: EntryFunPtr
-foreign import ccall "&stg_interp_constr7_entry" stg_interp_constr7_entry :: EntryFunPtr
+-- foreign import ccall "&stg_interp_constr1_entry" stg_interp_constr1_entry :: EntryFunPtr
+-- foreign import ccall "&stg_interp_constr2_entry" stg_interp_constr2_entry :: EntryFunPtr
+-- foreign import ccall "&stg_interp_constr3_entry" stg_interp_constr3_entry :: EntryFunPtr
+-- foreign import ccall "&stg_interp_constr4_entry" stg_interp_constr4_entry :: EntryFunPtr
+-- foreign import ccall "&stg_interp_constr5_entry" stg_interp_constr5_entry :: EntryFunPtr
+-- foreign import ccall "&stg_interp_constr6_entry" stg_interp_constr6_entry :: EntryFunPtr
+-- foreign import ccall "&stg_interp_constr7_entry" stg_interp_constr7_entry :: EntryFunPtr
 
 interpConstrEntry :: [EntryFunPtr]
-interpConstrEntry = [ error "pointer tag 0"
-                    , stg_interp_constr1_entry
-                    , stg_interp_constr2_entry
-                    , stg_interp_constr3_entry
-                    , stg_interp_constr4_entry
-                    , stg_interp_constr5_entry
-                    , stg_interp_constr6_entry
-                    , stg_interp_constr7_entry ]
+interpConstrEntry = [error "entry fun ptr"]
+-- interpConstrEntry = [ error "pointer tag 0"
+--                     , stg_interp_constr1_entry
+--                     , stg_interp_constr2_entry
+--                     , stg_interp_constr3_entry
+--                     , stg_interp_constr4_entry
+--                     , stg_interp_constr5_entry
+--                     , stg_interp_constr6_entry
+--                     , stg_interp_constr7_entry ]
 
 data StgConInfoTable = StgConInfoTable {
    conDesc   :: Ptr Word8,

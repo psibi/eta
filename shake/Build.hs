@@ -50,6 +50,7 @@ getDependencies :: String -> [String]
 getDependencies "ghc-prim" = ["rts"]
 getDependencies "base" = ["ghc-prim", "integer"]
 getDependencies "integer" = ["ghc-prim"]
+getDependencies "ghci" = ["base", "array", "binary", "bytestring", "containers", "deepseq", "filepath", "ghc-boot", "template-haskell", "transformers"]
 getDependencies _ = []
 
 topologicalDepsSort :: [String] -> (String -> [String]) -> [String]
@@ -121,7 +122,7 @@ buildLibrary debug lib deps = do
   when (lib == "rts") $ need [rtsjar]
   unit $ cmd (Cwd dir) "epm configure" configureFlags
   unit $ cmd (Cwd dir) "epm build"
-  unit $ cmd (Cwd dir) "epm install" installFlags
+  unit $ cmd (Cwd dir) "epm install -v3" installFlags
   when (lib == "ghc-prim") $ fixGhcPrimConf
   return ()
 

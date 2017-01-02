@@ -1267,7 +1267,7 @@ outputForeignStubs dflags (ForeignStubs _ _ classExports) =
 hscInteractive :: HscEnv
                -> CgGuts
                -> ModSummary
-               -> IO (Maybe FilePath, CompiledByteCode, ModBreaks)
+               -> IO [ClassFile]
 -- #ifdef GHCI
 hscInteractive hsc_env cgguts mod_summary = do
     let dflags = hsc_dflags hsc_env
@@ -1292,9 +1292,11 @@ hscInteractive hsc_env cgguts mod_summary = do
     -----------------  Generate byte code ------------------
     comp_bc <- byteCodeGen dflags this_mod prepd_binds data_tycons mod_breaks
     ------------------ Create f-x-dynamic C-side stuff ---
-    (_istub_h_exists, istub_c_exists)
-        <- outputForeignStubs dflags this_mod location foreign_stubs
-    return (istub_c_exists, comp_bc, mod_breaks)
+    -- eariler code:
+    -- (_istub_h_exists, istub_c_exists)
+    --     <- outputForeignStubs dflags this_mod location foreign_stubs
+    let stubClasses = outputForeignStubs dflags foreign_stubs
+    return stubClasses
 -- #else
 -- hscInteractive _ _ = panic "GHC not compiled with interpreter"
 -- #endif

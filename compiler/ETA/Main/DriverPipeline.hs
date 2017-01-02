@@ -234,28 +234,30 @@ compileOne' m_tc_result mHscMessage
                    _ -> do guts0 <- hscDesugar hsc_env summary tc_result
                            guts <- hscSimplify hsc_env guts0
                            (iface, _changed, details, cgguts) <- hscNormalIface hsc_env guts mb_old_hash
-                           (hasStub, comp_bc, modBreaks) <- hscInteractive hsc_env cgguts summary
+                           -- (hasStub, comp_bc, modBreaks) <- hscInteractive hsc_env cgguts summary
+                           classFiles <- hscInteractive hsc_env cgguts summary
 
-                           stub_o <- case hasStub of
-                                     Nothing -> return []
-                                     Just stub_c -> do
-                                         stub_o <- compileStub hsc_env stub_c
-                                         return [DotO stub_o]
+                           -- stub_o <- case hasStub of
+                           --           Nothing -> return []
+                           --           Just stub_c -> do
+                           --               stub_o <- compileStub hsc_env stub_c
+                           --               return [DotO stub_o]
 
-                           let hs_unlinked = [BCOs comp_bc modBreaks]
-                               unlinked_time = ms_hs_date summary
+                           -- let hs_unlinked = [BCOs comp_bc modBreaks]
+                           --     unlinked_time = ms_hs_date summary
                              -- Why do we use the timestamp of the source file here,
                              -- rather than the current time?  This works better in
                              -- the case where the local clock is out of sync
                              -- with the filesystem's clock.  It's just as accurate:
                              -- if the source is modified, then the linkable will
                              -- be out of date.
-                           let linkable = LM unlinked_time this_mod
-                                          (hs_unlinked ++ stub_o)
+                           -- let linkable = LM unlinked_time this_mod
+                           --                (hs_unlinked ++ stub_o)
 
                            return (HomeModInfo{ hm_details  = details,
                                                 hm_iface    = iface,
-                                                hm_linkable = Just linkable })
+                                                hm_linkable = Nothing })
+                                                -- hm_linkable = Just linkable })
                HscNothing ->
                    do (iface, changed, details) <- hscSimpleIface hsc_env tc_result mb_old_hash
                       when (gopt Opt_WriteInterface dflags) $
