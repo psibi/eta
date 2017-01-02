@@ -50,8 +50,11 @@ getDependencies :: String -> [String]
 getDependencies "ghc-prim" = ["rts"]
 getDependencies "base" = ["ghc-prim", "integer"]
 getDependencies "integer" = ["ghc-prim"]
-getDependencies "ghci" = ["ghc-boot"]
-getDependencies _ = ["base"]
+getDependencies "ghci" = ["ghc-boot", "base", "template-haskell"]
+getDependencies "ghc-boot" = ["base"]
+getDependencies "ghc-boot-th" = ["base"]
+getDependencies "template-haskell" = ["base"]
+getDependencies _ = []
 
 topologicalDepsSort :: [String] -> (String -> [String]) -> [String]
 topologicalDepsSort xs deps = sort' xs []
@@ -122,9 +125,7 @@ buildLibrary debug lib deps = do
       -- libCmd = unit . cmd (Cwd dir)
   when (lib == "rts") $ need [rtsjar]
   unit $ cmd (Cwd dir) "epm configure" configureFlags
-  unit $ cmd "epm install --dependencies-only"
-  unit $ cmd (Cwd dir) "epm build"
-  unit $ cmd (Cwd dir) "epm install -v3" installFlags
+  unit $ cmd (Cwd dir) "epm install" installFlags
   when (lib == "ghc-prim") $ fixGhcPrimConf
   return ()
 
@@ -210,9 +211,7 @@ main = shakeArgsWith shakeOptions{shakeFiles=rtsBuildDir} flags $ \flags targets
           copyFile' (ghcInclude </> s') (etaInclude </> s')
         copyFile' (ghcLibPath </> "settings") (rootDir </> "settings")
         copyFile' (ghcLibPath </> "ghc-usage.txt") (rootDir </> "ghc-usage.txt")
-
         unit $ cmd "epm update"
-        liftIO $ print "eta hackage updated"
         libs <- getLibs
         liftIO $ print "got library"
         let sortedLibs = topologicalDepsSort libs getDependencies

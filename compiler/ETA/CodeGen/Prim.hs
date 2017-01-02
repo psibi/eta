@@ -385,6 +385,7 @@ mkRtsPrimOp AtomicModifyMutVarOp    = (ioGroup, "atomicModifyMutVar")
 mkRtsPrimOp CasMutVarOp             = (ioGroup, "casMutVar")
 mkRtsPrimOp GetSparkOp              = (parGroup, "getSpark")
 mkRtsPrimOp NumSparks               = (parGroup, "numSparks")
+mkRtsPrimOp NewBCOOp                = (interpGroup, "newBCO")
 mkRtsPrimOp primop = pprPanic "mkRtsPrimOp: unimplemented!" (ppr primop)
 
 cgPrimOp   :: PrimOp            -- the op
@@ -959,6 +960,8 @@ simpleOp StablePtr2AddrOp = Just $ normalOp $
 simpleOp Addr2StablePtrOp = Just $ normalOp $
   invokevirtual $ mkMethodRef byteBuffer "getInt" [] (ret jint)
 simpleOp SizeofMutableByteArrayOp = Just $ normalOp $
+  invokevirtual $ mkMethodRef stgByteArray "remaining" [] (ret jint)
+simpleOp GetSizeofMutableByteArrayOp = Just $ normalOp $
   invokevirtual $ mkMethodRef stgByteArray "remaining" [] (ret jint)
 simpleOp SizeofByteArrayOp = Just $ normalOp $
   invokevirtual $ mkMethodRef stgByteArray "remaining" [] (ret jint)
