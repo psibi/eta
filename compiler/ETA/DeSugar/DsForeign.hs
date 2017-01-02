@@ -642,7 +642,7 @@ typeDataConClass :: DynFlags -> Type -> Text
 typeDataConClass dflags = dataConClass dflags . head . tyConDataCons . tyConAppTyCon
 
 dataConWrapper :: Type -> Code
-dataConWrapper = undefined
+dataConWrapper = error "dataConWrapper" -- undefined
 
 unboxResult :: Type -> Text -> FieldType -> Code
 unboxResult ty resClass resPrimFt

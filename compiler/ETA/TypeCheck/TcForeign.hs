@@ -46,7 +46,7 @@ import ETA.Utils.Maybes
 
 import Data.Maybe(fromMaybe)
 
-tcPolyExpr = undefined
+tcPolyExpr = error "tcPolyExpr"
 
 -- Defines a binding
 isForeignImport :: LForeignDecl name -> Bool
@@ -85,7 +85,7 @@ tcFImport (L declLoc fi@(ForeignImport (L nameLoc name) hsType _ impDecl))
       traceTc "tcFIImport" $ ppr theta <+> ppr argTypes <+> ppr resType
       --printDebug "tcFImport: normSigType" $ ppr argTypes <+> ppr resType
       impDecl' <- tcCheckFIType theta argTypes resType impDecl
-      let fiDecl = ForeignImport (L nameLoc id) undefined
+      let fiDecl = ForeignImport (L nameLoc id) (error "foreign import")
                                  (mkSymCo normCo) impDecl'
       return (id, L declLoc fiDecl, gres)
 tcFImport d = pprPanic "tcFImport" (ppr d)
@@ -296,7 +296,7 @@ tcFExport fo@(ForeignExport (L loc nm) hs_ty _ spec)
       (norm_co, norm_sig_ty, gres) <- normaliseFfiType sig_ty
       spec' <- tcCheckFEType norm_sig_ty spec
       id  <- mkStableIdFromName nm sig_ty loc mkForeignExportOcc
-      return (mkVarBind id rhs, ForeignExport (L loc id) undefined norm_co spec', gres)
+      return (mkVarBind id rhs, ForeignExport (L loc id) (error "tcFEExport") norm_co spec', gres)
 
 tcFExport d = pprPanic "tcFExport" (ppr d)
 

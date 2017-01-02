@@ -152,24 +152,24 @@ runQuasi :: TH.Q a -> TcM a
 traceSplice :: SpliceInfo -> TcM ()
 -- #endif
 
-tcSpliceExpr = undefined
-tcTypedBracket = undefined
-tcUntypedBracket = undefined
-runQuasiQuoteExpr = undefined
-runQuasiQuotePat = undefined
-runQuasiQuoteDecl = undefined
-runQuasiQuoteType = undefined
-runAnnotation = undefined
-runMetaE = undefined
-runMetaP = undefined
-runMetaT = undefined
-runMetaD = undefined
-runQuasi = undefined
-tcTopSpliceExpr = undefined
-lookupThName_maybe = undefined
-traceSplice = undefined
-defaultRunMeta = undefined
-runMeta' = undefined
+tcSpliceExpr = error "tcSpliceExpr"
+tcTypedBracket = error "TcSplice"
+tcUntypedBracket = error "TcSplice"
+runQuasiQuoteExpr = error "TcSplice"
+runQuasiQuotePat = error "TcSplice"
+runQuasiQuoteDecl = error "TcSplice"
+runQuasiQuoteType = error "TcSplice"
+runAnnotation = error "TcSplice"
+runMetaE = error "TcSplice"
+runMetaP = error "TcSplice"
+runMetaT = error "TcSplice"
+runMetaD = error "TcSplice"
+runQuasi = error "TcSplice"
+tcTopSpliceExpr = error "TcSplice"
+lookupThName_maybe = error "TcSplice"
+traceSplice = error "TcSplice"
+defaultRunMeta = error "TcSplice"
+runMeta' = error "TcSplice"
 
 
 -- tcTypedBracket   :: HsBracket Name -> TcRhoType -> TcM (HsExpr TcId)

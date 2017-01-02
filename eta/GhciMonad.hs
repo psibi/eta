@@ -350,9 +350,9 @@ foreign import ccall "revertCAFs" rts_revertCAFs  :: IO ()
 -- To flush buffers for the *interpreted* computation we need
 -- to refer to *its* stdout/stderr handles
 
-GLOBAL_VAR(stdin_ptr,  error "no stdin_ptr",  Ptr ())
-GLOBAL_VAR(stdout_ptr, error "no stdout_ptr", Ptr ())
-GLOBAL_VAR(stderr_ptr, error "no stderr_ptr", Ptr ())
+-- GLOBAL_VAR(stdin_ptr,  error "no stdin_ptr",  Ptr ())
+-- GLOBAL_VAR(stdout_ptr, error "no stdout_ptr", Ptr ())
+-- GLOBAL_VAR(stderr_ptr, error "no stderr_ptr", Ptr ())
 
 -- After various attempts, I believe this is the least bad way to do
 -- what we want.  We know look up the address of the static stdin,
@@ -369,32 +369,33 @@ GLOBAL_VAR(stderr_ptr, error "no stderr_ptr", Ptr ())
 -- each time.  There's no safe workaround for this.
 
 initInterpBuffering :: Ghc ()
-initInterpBuffering = do -- make sure these are linked
-    dflags <- GHC.getSessionDynFlags
-    liftIO $ do
-      initDynLinker dflags
+initInterpBuffering = return ()
+-- initInterpBuffering = do -- make sure these are linked
+--     dflags <- GHC.getSessionDynFlags
+--     liftIO $ do
+--       initDynLinker dflags
 
-        -- ToDo: we should really look up these names properly, but
-        -- it's a fiddle and not all the bits are exposed via the GHC
-        -- interface.
-      mb_stdin_ptr  <- ObjLink.lookupSymbol "base_GHCziIOziHandleziFD_stdin_closure"
-      mb_stdout_ptr <- ObjLink.lookupSymbol "base_GHCziIOziHandleziFD_stdout_closure"
-      mb_stderr_ptr <- ObjLink.lookupSymbol "base_GHCziIOziHandleziFD_stderr_closure"
+--         -- ToDo: we should really look up these names properly, but
+--         -- it's a fiddle and not all the bits are exposed via the GHC
+--         -- interface.
+--       mb_stdin_ptr  <- ObjLink.lookupSymbol "base_GHCziIOziHandleziFD_stdin_closure"
+--       mb_stdout_ptr <- ObjLink.lookupSymbol "base_GHCziIOziHandleziFD_stdout_closure"
+--       mb_stderr_ptr <- ObjLink.lookupSymbol "base_GHCziIOziHandleziFD_stderr_closure"
 
-      let f ref (Just ptr) = writeIORef ref ptr
-          f _   Nothing    = panic "interactiveUI:setBuffering2"
-      zipWithM_ f [stdin_ptr,stdout_ptr,stderr_ptr]
-                  [mb_stdin_ptr,mb_stdout_ptr,mb_stderr_ptr]
+--       let f ref (Just ptr) = writeIORef ref ptr
+--           f _   Nothing    = panic "interactiveUI:setBuffering2"
+--       zipWithM_ f [stdin_ptr,stdout_ptr,stderr_ptr]
+--                   [mb_stdin_ptr,mb_stdout_ptr,mb_stderr_ptr]
 
 flushInterpBuffers :: GHCi ()
-flushInterpBuffers
- = liftIO $ do getHandle stdout_ptr >>= hFlush
-               getHandle stderr_ptr >>= hFlush
+flushInterpBuffers = return ()
+ -- = liftIO $ do getHandle stdout_ptr >>= hFlush
+ --               getHandle stderr_ptr >>= hFlush
 
 turnOffBuffering :: IO ()
-turnOffBuffering
- = do hdls <- mapM getHandle [stdin_ptr,stdout_ptr,stderr_ptr]
-      mapM_ (\h -> hSetBuffering h NoBuffering) hdls
+turnOffBuffering = return ()
+ -- = do hdls <- mapM getHandle [stdin_ptr,stdout_ptr,stderr_ptr]
+ --      mapM_ (\h -> hSetBuffering h NoBuffering) hdls
 
 getHandle :: IORef (Ptr ()) -> IO Handle
 getHandle ref = do

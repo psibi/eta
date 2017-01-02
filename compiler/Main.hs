@@ -263,7 +263,7 @@ main' postLoadMode dflags0 args flagWarnings = do
   liftIO $ dumpFinalStats dflags6
 
 ghciUI :: [(FilePath, Maybe Phase)] -> Maybe [String] -> Ghc ()
-ghciUI     = undefined--TODO: GHCI interactiveUI defaultGhciSettings
+ghciUI     = err--TODO: GHCI interactiveUI defaultGhciSettings
 
 -- -----------------------------------------------------------------------------
 -- Splitting arguments into source files and object files.  This is where we

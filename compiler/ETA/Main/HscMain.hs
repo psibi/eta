@@ -204,8 +204,9 @@ knownKeyNames :: [Name]      -- Put here to avoid loops involving DsMeta,
 knownKeyNames =              -- where templateHaskellNames are defined
     map getName wiredInThings
         ++ basicKnownKeyNames
+--
 -- #ifdef GHCI
-        ++ (error "Hscmain.hs: fix me") -- templateHaskellNames
+--        ++ (error "Hscmain.hs: fix me") -- templateHaskellNames
 -- #endif
 
 -- -----------------------------------------------------------------------------
