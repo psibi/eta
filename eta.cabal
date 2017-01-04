@@ -32,6 +32,7 @@ library
                        , TupleSections
     exposed-modules:     ETA.BasicTypes.Avail
                        , ETA.BasicTypes.BasicTypes
+                       , ETA.BasicTypes.SMRep
                        , ETA.BasicTypes.ConLike
                        , ETA.BasicTypes.DataCon
                        , ETA.BasicTypes.Demand
@@ -298,6 +299,8 @@ library
                        , ETA.Util
                        , ETA.Utils.JAR
                        , ETA.Parser.Lexer
+                       , ETA.Interactive.Types
+                       , ETA.Interactive.BitMap
     other-modules:       ETA.Parser.Parser
                        , ETA.Parser.RdrHsSyn
                        , InteractiveUI
@@ -326,7 +329,7 @@ library
                        , deepseq
                        , unix-compat >= 0.4.3.1
                        , template-haskell
-                       , ghci
+                       , ghci == 0.0.4
 
     if os(windows)
         build-depends:   Win32

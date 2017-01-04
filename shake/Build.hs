@@ -50,7 +50,7 @@ getDependencies :: String -> [String]
 getDependencies "ghc-prim" = ["rts"]
 getDependencies "base" = ["ghc-prim", "integer"]
 getDependencies "integer" = ["ghc-prim"]
-getDependencies "ghci" = ["ghc-boot", "base", "template-haskell"]
+getDependencies "ghci" = ["base"]
 getDependencies "ghc-boot" = ["base"]
 getDependencies "ghc-boot-th" = ["base"]
 getDependencies "template-haskell" = ["base"]
@@ -179,7 +179,7 @@ flags = [Option "" ["debuginfo"] (NoArg $ Right True) "Run with debugging inform
 
 -- TODO: Make the build script cleaner
 main :: IO ()
-main = shakeArgsWith shakeOptions{shakeFiles=rtsBuildDir} flags $ \flags targets -> return $ Just $ do
+main = shakeArgsWith shakeOptions{shakeFiles=rtsBuildDir, shakeVerbosity = Loud} flags $ \flags targets -> return $ Just $ do
 
     if null targets
       then want [rtsjar]

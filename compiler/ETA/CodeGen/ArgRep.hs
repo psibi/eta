@@ -16,6 +16,7 @@ module ETA.CodeGen.ArgRep
    contextStore,
    slowCallPattern,
    argRepFt
+   -- mkBitmap
   ) where
 
 import ETA.BasicTypes.Id
@@ -25,12 +26,13 @@ import ETA.BasicTypes.BasicTypes       ( RepArity )
 import ETA.Main.DynFlags
 import ETA.Debug
 import Data.Maybe
-
 import ETA.CodeGen.Rts
 import ETA.Util
 import Codec.JVM
 import Data.Monoid ((<>))
 import Data.Text (Text)
+import Data.Word (Word32)
+import Data.Bits
 
 data ArgRep = P   -- StgClosure
              | N   -- int-sized non-ptr
@@ -181,3 +183,28 @@ argRepFt F = jfloat
 argRepFt L = jlong
 argRepFt D = jdouble
 argRepFt _ = panic "argRepFt: V argrep!"
+
+-- size of a value in *words*
+argSize :: ArgRep -> Int
+argSize N   = 1
+argSize P   = 1
+argSize V   = 0
+argSize F   = 1
+argSize _ = error "argSize"
+-- argSize D   = (SIZEOF_DOUBLE `quot` SIZEOF_VOID_P :: Int)
+-- argSize L   = (8 `quot` SIZEOF_VOID_P :: Int)
+-- argSize V16 = (16 `quot` SIZEOF_VOID_P :: Int)
+-- argSize V32 = (32 `quot` SIZEOF_VOID_P :: Int)
+-- argSize V64 = (64 `quot` SIZEOF_VOID_P :: Int)
+
+-- is a value a pointer?
+isPtr :: ArgRep -> Bool
+isPtr P = True
+isPtr _ = False
+
+-- -- make a ptr/non-ptr bitmap from a list of argument types
+-- mkBitmap :: [ArgRep] -> Word32
+-- mkBitmap args = foldr f 0 args
+--  where f arg bm | isPtr arg = bm `shiftL` 1
+--                 | otherwise = (bm `shiftL` size) .|. ((1 `shiftL` size) - 1)
+--                 where size = argSize arg

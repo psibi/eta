@@ -52,6 +52,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 
 import GHC.Base         ( ByteArray#, MutableByteArray#, RealWorld )
+import ETA.Interactive.Types
 
 -- -----------------------------------------------------------------------------
 -- Unlinked BCOs
@@ -128,8 +129,9 @@ assembleBCOs dflags proto_bcos tycons
 assembleBCO :: DynFlags -> ProtoBCO Name -> IO UnlinkedBCO
 assembleBCO dflags (ProtoBCO nm instrs bitmap bsize arity _origin _malloced) = do
   -- pass 1: collect up the offsets of the local labels.
+  print "inside assembleBCO"
   let asm = mapM_ (assembleI dflags) instrs
-
+      
       initial_offset = 0
 
       -- Jump instructions are variable-sized, there are long and short variants
@@ -152,18 +154,19 @@ assembleBCO dflags (ProtoBCO nm instrs bitmap bsize arity _origin _malloced) = d
 
   -- pass 2: run assembler and generate instructions, literals and pointers
   let initial_state = (emptySS, emptySS, emptySS)
+  print "before flipping"
   (final_insns, final_lits, final_ptrs) <- flip execStateT initial_state $ runAsm dflags long_jumps env asm
-
+  print "after flipping"
   -- precomputed size should be equal to final size
   ASSERT(n_insns == sizeSS final_insns) return ()
-
+  print "after asset"
   let asm_insns = ssElts final_insns
       barr a = case a of UArray _lo _hi _n b -> b
 
       insns_arr = Array.listArray (0, n_insns - 1) asm_insns
       !insns_barr = barr insns_arr
 
-      bitmap_arr = undefined --mkBitmapArray bsize bitmap
+      bitmap_arr = mkBitmapArray bsize bitmap
       !bitmap_barr = barr bitmap_arr
 
       ul_bco = UnlinkedBCO nm arity insns_barr bitmap_barr final_lits final_ptrs
@@ -172,16 +175,16 @@ assembleBCO dflags (ProtoBCO nm instrs bitmap bsize arity _origin _malloced) = d
   -- objects, since they might get run too early.  Disable this until
   -- we figure out what to do.
   -- when (notNull malloced) (addFinalizer ul_bco (mapM_ zonk malloced))
-
+  print "gonna return from assemble bco"
   return ul_bco
 
--- mkBitmapArray :: Word16 -> [StgWord] -> UArray Int Word
--- -- Here the return type must be an array of Words, not StgWords,
--- -- because the underlying ByteArray# will end up as a component
--- -- of a BCO object.
--- mkBitmapArray bsize bitmap
---   = Array.listArray (0, length bitmap) $
---       fromIntegral bsize : map (fromInteger . fromStgWord) bitmap
+mkBitmapArray :: Word16 -> [StgWord] -> UArray Int Word
+-- Here the return type must be an array of Words, not StgWords,
+-- because the underlying ByteArray# will end up as a component
+-- of a BCO object.
+mkBitmapArray bsize bitmap
+  = Array.listArray (0, length bitmap) $
+      fromIntegral bsize : map (fromInteger . fromStgWord) bitmap
 
 -- instrs nonptrs ptrs
 type AsmState = (SizedSeq Word16,

@@ -354,7 +354,6 @@ interactiveUI config srcs maybe_exprs = do
    -- although GHCi compiles with -prof, it is not usable: the byte-code
    -- compiler and interpreter don't work with profiling.  So we check for
    -- this up front and emit a helpful error message (#2197)
-   liftIO $ print "1 - debug 1"
    i <- liftIO $ isProfiled
    when (i /= 0) $
      throwGhcException (InstallationError "GHCi cannot be used when compiled with -prof")
@@ -370,14 +369,12 @@ interactiveUI config srcs maybe_exprs = do
    _ <- liftIO $ newStablePtr stdin
    _ <- liftIO $ newStablePtr stdout
    _ <- liftIO $ newStablePtr stderr
-   liftIO $ print "1 - debug 2"
     -- Initialise buffering for the *interpreted* I/O system
    -- initInterpBuffering
 
    -- The initial set of DynFlags used for interactive evaluation is the same
    -- as the global DynFlags, plus -XExtendedDefaultRules and
    -- -XNoMonomorphismRestriction.
-   liftIO $ print "1 - debug 3"
    dflags <- getDynFlags
    let dflags' = (`xopt_set` Opt_ExtendedDefaultRules)
                . (`xopt_unset` Opt_MonomorphismRestriction)
@@ -385,11 +382,9 @@ interactiveUI config srcs maybe_exprs = do
    GHC.setInteractiveDynFlags dflags'
 
    lastErrLocationsRef <- liftIO $ newIORef []
-   liftIO $ print "1 - debug 4"
    progDynFlags <- GHC.getProgramDynFlags
    _ <- GHC.setProgramDynFlags $
       progDynFlags { log_action = ghciLogAction lastErrLocationsRef }
-   liftIO $ print "debug 2"
 --    liftIO $ when (isNothing maybe_exprs) $ do
 --         -- Only for GHCi (not runghc and ghc -e):
 
@@ -461,6 +456,7 @@ withGhcAppData right left = do
 
 runGHCi :: [(FilePath, Maybe Phase)] -> Maybe [String] -> GHCi ()
 runGHCi paths maybe_exprs = do
+  liftIO $ print "inside runGHCi"
   dflags <- getDynFlags
   let
    read_dot_files = not (gopt Opt_IgnoreDotGhci dflags)
@@ -541,6 +537,7 @@ runGHCi paths maybe_exprs = do
 
   -- reset line number
   getGHCiState >>= \st -> setGHCiState st{line_number=1}
+  liftIO $ print "InteractiveUI: reset line number"                        
 
   case maybe_exprs of
         Nothing ->
@@ -2514,7 +2511,7 @@ ghciCompleteWord line@(left,_) = case firstWord of
             Just (_,_,f) -> return f
             Nothing -> return completeFilename
 
-completeGhciCommand = undefined
+completeGhciCommand = error "completeGhcicommand"
 
 -- completeGhciCommand = wrapCompleter " " $ \w -> do
 --   macros <- liftIO $ readIORef macros_ref
@@ -2526,7 +2523,7 @@ completeGhciCommand = undefined
 --       _ -> nub $ macro_names ++ command_names }
 --   return $ filter (w `isPrefixOf`) candidates
 
-completeMacro = undefined
+completeMacro = error "complete macro"
 
 -- completeMacro = wrapIdentCompleter $ \w -> do
 --   cmds <- liftIO $ readIORef macros_ref

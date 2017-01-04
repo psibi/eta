@@ -30,6 +30,7 @@ import ETA.Prelude.PrimOp
 import ETA.BasicTypes.Module (Module)
 import GHC.Exts
 import Data.Word
+import ETA.Interactive.Types
 
 -- ----------------------------------------------------------------------------
 -- Bytecode instructions
@@ -39,7 +40,7 @@ data ProtoBCO a
         protoBCOName       :: a,          -- name, in some sense
         protoBCOInstrs     :: [BCInstr],  -- instrs
         -- arity and GC info
-        protoBCOBitmap     :: [Int],-- TODO:[StgWord],
+        protoBCOBitmap     :: [StgWord], -- [Int]
         protoBCOBitmapSize :: Word16,
         protoBCOArity      :: Int,
         -- what the BCO came from
@@ -169,7 +170,8 @@ instance Outputable a => Outputable (ProtoBCO a) where
                       Left alts -> vcat (zipWith (<+>) (char '{' : repeat (char ';'))
                                                        (map (pprCoreAltShort.deAnnAlt) alts)) <+> char '}'
                       Right rhs -> pprCoreExprShort (deAnnotate rhs))
-        $$ nest 3 (text "bitmap: " <+> text (show bsize) <+> ppr bitmap)
+        $$ nest 3 (text "bitmap: " <+> text (show bsize) <+> (error "ppr bitmap"))
+--        $$ nest 3 (text "bitmap: " <+> text (show bsize) <+> ppr bitmap)
         $$ nest 3 (vcat (map ppr instrs))
 
 -- Print enough of the Core expression to enable the reader to find

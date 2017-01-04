@@ -464,16 +464,16 @@ runGHCi paths maybe_exprs = do
   let
    read_dot_files = not (gopt Opt_IgnoreDotGhci dflags)
 
-   current_dir = return (Just ".ghci")
+   current_dir = return (Just ".etai")
 
    app_user_dir = liftIO $ withGhcAppData
-                    (\dir -> return (Just (dir </> "ghci.conf")))
+                    (\dir -> return (Just (dir </> "eta.conf")))
                     (return Nothing)
 
    home_dir = do
     either_dir <- liftIO $ tryIO (getEnv "HOME")
     case either_dir of
-      Right home -> return (Just (home </> ".ghci"))
+      Right home -> return (Just (home </> ".etai"))
       _ -> return Nothing
 
    canonicalizePath' :: FilePath -> IO (Maybe FilePath)
@@ -2513,7 +2513,7 @@ ghciCompleteWord line@(left,_) = case firstWord of
             Just (_,_,f) -> return f
             Nothing -> return completeFilename
 
-completeGhciCommand = undefined
+completeGhciCommand = error "completeGhciCommand"
 
 -- completeGhciCommand = wrapCompleter " " $ \w -> do
 --   macros <- liftIO $ readIORef macros_ref
@@ -2525,7 +2525,7 @@ completeGhciCommand = undefined
 --       _ -> nub $ macro_names ++ command_names }
 --   return $ filter (w `isPrefixOf`) candidates
 
-completeMacro = undefined
+completeMacro = error "completeMacro"
 
 -- completeMacro = wrapIdentCompleter $ \w -> do
 --   cmds <- liftIO $ readIORef macros_ref
